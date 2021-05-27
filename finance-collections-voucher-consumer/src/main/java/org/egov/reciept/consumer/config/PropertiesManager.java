@@ -177,10 +177,10 @@ public class PropertiesManager {
     			return "http://jalandhar.lgpunjab.com:8080/";
     		}
     		if(finCoeErpEnvName != null && !finCoeErpEnvName.isEmpty()){
-    			return httpProtocol+"://"+tenantId+"-"+finCoeErpEnvName+"."+finCoeErpDomainName+"/";
+    			return httpProtocol+"://sujog-"+tenantId+"-"+finCoeErpEnvName+"."+finCoeErpDomainName+"/";
     		}else{
     			//considered as the production url
-    			return httpProtocol+"://"+tenantId+"."+finCoeErpDomainName+"/";
+    			return httpProtocol+"://sujog-"+tenantId+"."+finCoeErpDomainName+"/";
     		}
 		} catch (Exception e) {
 			throw new VoucherCustomException(ProcessStatus.FAILED,"ERROR occured while generating ERP url to interact with the finance coexistence. Please check the configuration in properties file.");
