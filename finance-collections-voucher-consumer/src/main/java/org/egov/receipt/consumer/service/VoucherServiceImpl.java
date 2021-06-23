@@ -122,11 +122,13 @@ public class VoucherServiceImpl implements VoucherService {
 	public VoucherResponse createReceiptVoucher(ReceiptReq receiptRequest, FinanceMdmsModel finSerMdms, String collectionVersion)
 			throws Exception {
 		Receipt receipt = receiptRequest.getReceipt().get(0);
+		String reciptNumber=receipt.getReceiptNumber();
 		String tenantId = receipt.getTenantId();
 //		final StringBuilder voucher_create_url = new StringBuilder(propertiesManager.getErpURLBytenantId(tenantId)
 //				+ propertiesManager.getVoucherCreateUrl());
 //		VoucherRequest voucherRequest = new VoucherRequest();
 		Voucher voucher = new Voucher();
+		voucher.setReceiptNumber(reciptNumber);
 		voucher.setTenantId(tenantId);
 		this.setVoucherDetails(voucher, receipt, tenantId, receiptRequest.getRequestInfo(), finSerMdms, collectionVersion);
 //		voucherRequest.setVouchers(Collections.singletonList(voucher));

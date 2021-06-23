@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.egov.collection.repository.querybuilder.RemittanceQueryBuilder;
+import org.egov.collection.repository.rowmapper.RemittanceDepositWorkResultSetExtractor;
 import org.egov.collection.repository.rowmapper.RemittanceResultSetExtractor;
 import org.egov.collection.web.contract.Remittance;
+import org.egov.collection.web.contract.RemittanceDepositWorkDetail;
 import org.egov.collection.web.contract.RemittanceDetail;
 import org.egov.collection.web.contract.RemittanceInstrument;
 import org.egov.collection.web.contract.RemittanceReceipt;
@@ -29,6 +31,10 @@ public class RemittanceRepository {
 
     @Autowired
     private RemittanceResultSetExtractor remittanceResultSetExtractor;
+    
+    @Autowired
+    private  RemittanceDepositWorkResultSetExtractor remittanceDepositWorkResultSetExtractor;
+
 
     public void saveRemittance(Remittance remittance) {
         try {
@@ -75,6 +81,24 @@ public class RemittanceRepository {
         List<Remittance> remittances = namedParameterJdbcTemplate.query(query, preparedStatementValues,
                 remittanceResultSetExtractor);
         return remittances;
+    }
+    
+    public List<RemittanceDepositWorkDetail> fetchRemittancesDepositWork(RemittanceSearchRequest remittanceSearchRequest) {
+        Map<String, Object> preparedStatementValues = new HashMap<>();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("receiptnumber", remittanceSearchRequest.getReceiptNumbers());
+
+        String query="select er2.id,er2.referencenumber,er2.referencedate,er3.creditamount,ep.receiptnumber from egcl_remittance er2 inner join egcl_remittancedetails er3 on er3.remittance = er2.id\r\n" + 
+        		"\r\n" + 
+        		"inner join  egcl_remittancereceipt er on er.remittance = er2.id \r\n" + 
+        		"inner join  egcl_billdetial eb on eb.id =er.receipt \r\n" + 
+        		"inner join  egcl_paymentdetail ep on eb.billid=ep.billid   where ep.receiptnumber in (:receiptnumber)";
+     //   String query = RemittanceQueryBuilder.getRemittanceSearchQuery(remittanceSearchRequest, preparedStatementValues);
+        log.debug(query);
+        List<RemittanceDepositWorkDetail> remittances = namedParameterJdbcTemplate.query(query, parameters,
+                remittanceDepositWorkResultSetExtractor);
+        return remittances; 
     }
 
 }

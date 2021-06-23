@@ -42,14 +42,18 @@ package org.egov.collection.web.controller;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 
 import org.egov.collection.service.RemittanceService;
 import org.egov.collection.web.contract.Remittance;
+import org.egov.collection.web.contract.RemittanceDepositWorkDetail;
 import org.egov.collection.web.contract.RemittanceRequest;
 import org.egov.collection.web.contract.RemittanceResponse;
+import org.egov.collection.web.contract.RemittanceResponseDepositWorkDetails;
 import org.egov.collection.web.contract.RemittanceSearchRequest;
+import org.egov.collection.web.contract.factory.RequestInfoSearchWrapper;
 import org.egov.collection.web.contract.factory.RequestInfoWrapper;
 import org.egov.collection.web.contract.factory.ResponseInfoFactory;
 import org.egov.common.contract.request.RequestInfo;
@@ -100,6 +104,32 @@ public class RemittanceController {
         Remittance remittanceInfo = remittanceService.updateRemittance(remittanceRequest);
 
         return getSuccessResponse(Collections.singletonList(remittanceInfo), remittanceRequest.getRequestInfo());
+    }
+    
+    @RequestMapping(value = "/_getdepositWork", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<RemittanceResponseDepositWorkDetails> getdepositWork(@ModelAttribute RemittanceSearchRequest remittanceSearchRequest,
+    		@RequestBody @Valid final RequestInfoSearchWrapper requestInfoWrapper) {
+
+        final RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
+        final Set<String> receiptNumbers=requestInfoWrapper.getReceiptNumbers();
+
+		if(receiptNumbers!=null && receiptNumbers!=null) {
+			remittanceSearchRequest.setReceiptNumbers(receiptNumbers);
+		}
+
+       List<RemittanceDepositWorkDetail> remittances = remittanceService.getRemittancesDepositWork(requestInfo, remittanceSearchRequest);
+        return getSuccessResponse2(remittances, requestInfo);
+    }
+
+    private ResponseEntity<RemittanceResponseDepositWorkDetails> getSuccessResponse2(List<RemittanceDepositWorkDetail> remittances,
+            RequestInfo requestInfo) {
+        final ResponseInfo responseInfo = ResponseInfoFactory
+                .createResponseInfoFromRequestInfo(requestInfo, true);
+        responseInfo.setStatus(HttpStatus.OK.toString());
+
+        RemittanceResponseDepositWorkDetails remittanceResponse = new RemittanceResponseDepositWorkDetails(responseInfo, remittances);
+        return new ResponseEntity<>(remittanceResponse, HttpStatus.OK);
     }
 
     private ResponseEntity<RemittanceResponse> getSuccessResponse(List<Remittance> remittances,

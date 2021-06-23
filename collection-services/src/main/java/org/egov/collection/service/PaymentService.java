@@ -6,9 +6,11 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.egov.collection.config.ApplicationProperties;
+import org.egov.collection.model.AuditDetails;
 import org.egov.collection.model.Payment;
 import org.egov.collection.model.PaymentRequest;
 import org.egov.collection.model.PaymentSearchCriteria;
+import org.egov.collection.model.enums.PaymentStatusEnum;
 import org.egov.collection.producer.CollectionProducer;
 import org.egov.collection.repository.PaymentRepository;
 import org.egov.collection.util.PaymentEnricher;
@@ -82,7 +84,54 @@ public class PaymentService {
         return payments;
     }
 
+    /**
+     * Fetch all receipts matching the given criteria, enrich receipts with instruments
+     *
+     * @param requestInfo           Request info of the search
+     * @param paymentSearchCriteria Criteria against which search has to be performed
+     * @return List of matching receipts
+     */
+    public List<Payment> getPayments(RequestInfo requestInfo, PaymentSearchCriteria paymentSearchCriteria) {
+    	
+        Map<String, String> errorMap = new HashMap<>();
+        paymentValidator.validateUserInfo(requestInfo, errorMap);
+        if (!errorMap.isEmpty())
+            throw new CustomException(errorMap);
 
+        if (applicationProperties.isPaymentsSearchPaginationEnabled()) {
+            paymentSearchCriteria.setOffset(isNull(paymentSearchCriteria.getOffset()) ? 0 : paymentSearchCriteria.getOffset());
+            paymentSearchCriteria.setLimit(isNull(paymentSearchCriteria.getLimit()) ? applicationProperties.getReceiptsSearchDefaultLimit() :
+                    paymentSearchCriteria.getLimit());
+        } else {
+            paymentSearchCriteria.setOffset(0);
+            paymentSearchCriteria.setLimit(applicationProperties.getReceiptsSearchDefaultLimit());
+        }
+        /*if(requestInfo.getUserInfo().getType().equals("CITIZEN")) {
+            List<String> payerIds = new ArrayList<>();
+            payerIds.add(requestInfo.getUserInfo().getUuid());
+            paymentSearchCriteria.setPayerIds(payerIds);
+        }*/
+        List<Payment> payments = paymentRepository.fetchPayments(paymentSearchCriteria);
+
+        return payments;
+    }
+    
+    @Transactional
+    public List<Payment> updatePaymentStatus(RequestInfo requestInfo, PaymentSearchCriteria paymentSearchCriteria, PaymentStatusEnum paymentStatus) {
+
+        List<Payment> validatedPayments = getPayments(requestInfo, paymentSearchCriteria);
+
+        for (Payment payment : validatedPayments) {
+        	payment.setPaymentStatus(paymentStatus);
+        }
+
+        AuditDetails auditDetails = AuditDetails.builder()
+				.lastModifiedBy(requestInfo.getUserInfo().getId().toString())
+				.lastModifiedTime(System.currentTimeMillis()).build();
+
+        paymentRepository.updatePaymentStatus(validatedPayments,auditDetails);
+        return validatedPayments;
+    }
     
     
     /**

@@ -42,6 +42,7 @@ package org.egov.collection.web.controller;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -49,10 +50,12 @@ import org.egov.collection.model.Payment;
 import org.egov.collection.model.PaymentRequest;
 import org.egov.collection.model.PaymentResponse;
 import org.egov.collection.model.PaymentSearchCriteria;
+import org.egov.collection.model.enums.PaymentStatusEnum;
 import org.egov.collection.service.MigrationService;
 import org.egov.collection.service.PaymentService;
 import org.egov.collection.service.PaymentWorkflowService;
 import org.egov.collection.web.contract.PaymentWorkflowRequest;
+import org.egov.collection.web.contract.factory.RequestInfoSearchWrapper;
 import org.egov.collection.web.contract.factory.RequestInfoWrapper;
 import org.egov.collection.web.contract.factory.ResponseInfoFactory;
 import org.egov.common.contract.request.RequestInfo;
@@ -88,9 +91,17 @@ public class PaymentController {
     @RequestMapping(path = {"/_search","/{moduleName}/_search"}, method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<PaymentResponse> search(@ModelAttribute PaymentSearchCriteria paymentSearchCriteria,
-                                             @RequestBody @Valid final RequestInfoWrapper requestInfoWrapper,
+                                             @RequestBody @Valid final RequestInfoSearchWrapper requestInfoWrapper,
                                              @PathVariable @Nullable String moduleName) {
 
+    	final Set<String> idsList= requestInfoWrapper.getIds();
+        if(idsList!=null && !idsList.isEmpty()) {
+    		paymentSearchCriteria.setIds(idsList);
+        }
+        
+        if(requestInfoWrapper.getReceiptNumbers()!=null && !requestInfoWrapper.getReceiptNumbers().isEmpty()) {
+    		paymentSearchCriteria.setReceiptNumbers(requestInfoWrapper.getReceiptNumbers());
+        }
         final RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
         List<Payment> payments = paymentService.getPayments(requestInfo, paymentSearchCriteria, moduleName);
         return getSuccessResponse(payments, requestInfo);
@@ -160,6 +171,27 @@ public class PaymentController {
         final RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
 
         List<Payment> payments = paymentService.plainSearch(paymentSearchCriteria);
+
+        return getSuccessResponse(payments, requestInfo);
+    }
+    
+    @RequestMapping(value = "/_cancel", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<PaymentResponse> cancel(@ModelAttribute PaymentSearchCriteria paymentSearchCriteria,
+                                             @RequestBody @Valid final RequestInfoSearchWrapper requestInfoWrapper) {
+
+        final RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
+        final Set<String> idsList= requestInfoWrapper.getIds();
+
+        if(idsList!=null && !idsList.isEmpty()) {
+    		paymentSearchCriteria.setIds(idsList);
+        }
+
+        if(requestInfoWrapper.getReceiptNumbers()!=null && !requestInfoWrapper.getReceiptNumbers().isEmpty()) {
+    		paymentSearchCriteria.setReceiptNumbers(requestInfoWrapper.getReceiptNumbers());
+        }
+
+        List<Payment> payments = paymentService.updatePaymentStatus(requestInfo, paymentSearchCriteria, PaymentStatusEnum.CANCELLED);
 
         return getSuccessResponse(payments, requestInfo);
     }
