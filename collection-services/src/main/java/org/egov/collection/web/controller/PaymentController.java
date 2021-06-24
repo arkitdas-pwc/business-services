@@ -91,6 +91,17 @@ public class PaymentController {
     @RequestMapping(path = {"/_search","/{moduleName}/_search"}, method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<PaymentResponse> search(@ModelAttribute PaymentSearchCriteria paymentSearchCriteria,
+                                             @RequestBody @Valid final RequestInfoWrapper requestInfoWrapper,
+                                             @PathVariable @Nullable String moduleName) {
+
+        final RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
+        List<Payment> payments = paymentService.getPayments(requestInfo, paymentSearchCriteria, moduleName);
+        return getSuccessResponse(payments, requestInfo);
+    }
+    
+    @RequestMapping(path = {"/_searchByReceiptIDs","/{moduleName}/_searchByReceiptIDs"}, method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<PaymentResponse> searchByReceiptIDs(@ModelAttribute PaymentSearchCriteria paymentSearchCriteria,
                                              @RequestBody @Valid final RequestInfoSearchWrapper requestInfoWrapper,
                                              @PathVariable @Nullable String moduleName) {
 
