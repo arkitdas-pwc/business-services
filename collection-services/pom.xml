@@ -152,8 +152,8 @@
 				<configuration>
 					<jsonLibrary>jackson2</jsonLibrary>
 					<classes>
-						<class>org.egov.collection.web.contract.PaymentRequest</class>
-						<class>org.egov.collection.web.contract.PaymentResponse</class>
+						<class>org.egov.collection.model.PaymentRequest</class>
+						<class>org.egov.collection.model.PaymentResponse</class>
 						<class>org.egov.collection.model.PaymentSearchCriteria</class>
 					</classes>
 					<customTypeMappings>

@@ -1,6 +1,7 @@
 package org.egov.collection.web.contract;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
@@ -34,6 +35,8 @@ public class RemittanceSearchRequest {
     private String status;
 
     private String bankaccount;
+    
+    private Set<String> receiptNumbers;
 
     @NotNull
     private String tenantId;

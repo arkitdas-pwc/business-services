@@ -5,6 +5,7 @@ import java.util.List;
 import org.egov.collection.repository.RemittanceRepository;
 import org.egov.collection.util.RemittanceEnricher;
 import org.egov.collection.web.contract.Remittance;
+import org.egov.collection.web.contract.RemittanceDepositWorkDetail;
 import org.egov.collection.web.contract.RemittanceRequest;
 import org.egov.collection.web.contract.RemittanceSearchRequest;
 import org.egov.common.contract.request.RequestInfo;
@@ -53,6 +54,14 @@ public class RemittanceService {
         remittanceRepository.updateRemittance(remittance);
 
         return remittance;
+    }
+    
+    public List<RemittanceDepositWorkDetail> getRemittancesDepositWork(RequestInfo requestInfo, RemittanceSearchRequest remittanceSearchRequest) {
+        remittanceSearchRequest.setOffset(0);
+        remittanceSearchRequest.setLimit(25);
+
+        List<RemittanceDepositWorkDetail> remittances = remittanceRepository.fetchRemittancesDepositWork(remittanceSearchRequest);
+        return remittances;
     }
 
 }

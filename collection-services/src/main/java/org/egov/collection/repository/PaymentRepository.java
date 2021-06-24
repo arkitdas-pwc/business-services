@@ -8,6 +8,7 @@ import static org.egov.collection.repository.querybuilder.PaymentQueryBuilder.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.egov.collection.model.AuditDetails;
 import org.egov.collection.model.Payment;
 import org.egov.collection.model.PaymentDetail;
 import org.egov.collection.model.PaymentSearchCriteria;
@@ -181,6 +182,22 @@ public class PaymentRepository {
         }
     }
 
+    public void updatePaymentStatus(List<Payment> payments, AuditDetails auditDetails){
+        List<MapSqlParameterSource> paymentSource = new ArrayList<>();
+
+        try {
+
+            for (Payment payment : payments) {
+                paymentSource.add(getParametersForPaymentUpdateStatus(payment, auditDetails));
+            }
+
+            namedParameterJdbcTemplate.batchUpdate(COPY_PAYMENT_SQL, paymentSource.toArray(new MapSqlParameterSource[0]));
+            namedParameterJdbcTemplate.batchUpdate(UPDATE_PAYMENT_STATUS_SQL, paymentSource.toArray(new MapSqlParameterSource[0]));
+        }catch (Exception e){
+            log.error("Failed to update receipt to database", e);
+            throw new CustomException("RECEIPT_UPDATION_FAILED", "Unable to update receipt");
+        }
+    }
 
     public void updatePayment(List<Payment> payments){
         List<MapSqlParameterSource> paymentSource = new ArrayList<>();

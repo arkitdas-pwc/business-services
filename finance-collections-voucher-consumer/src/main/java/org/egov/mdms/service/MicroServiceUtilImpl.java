@@ -230,7 +230,7 @@ public class MicroServiceUtilImpl implements MicroServiceUtil{
 				}
 			}
 		} catch (Exception e) {
-			throw new VoucherCustomException(ProcessStatus.FAILED,"Error while parsing mdms data for InstrumentGLcodeMapping/OnlineGLCodeMapping master. Check the business/account head mapping json file.");
+			throw new VoucherCustomException(ProcessStatus.FAILED,"Error while parsing mdms data for InstrumentGLcodeMapping/OnlineGLCodeMapping master. Check the business/account head mapping json file."+e.getMessage());
 		}
 		return null;
 	}

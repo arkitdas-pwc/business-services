@@ -94,6 +94,8 @@ public class Voucher {
     private String department;
 
     private String source;
+    
+    private String receiptNumber;
 
     private Scheme scheme;
 
