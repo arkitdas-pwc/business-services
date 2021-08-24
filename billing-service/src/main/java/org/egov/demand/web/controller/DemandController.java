@@ -131,4 +131,15 @@ public class DemandController {
 		return new ResponseEntity<>(resultMap, HttpStatus.OK);
 	}
     
+    @PostMapping("/_migrateDemand")
+	@ResponseBody
+	public ResponseEntity<?> migrateDemand(@RequestHeader HttpHeaders headers, @RequestBody @Valid DemandRequest demandRequest) {
+
+		log.info("the demand request object : " + demandRequest);
+
+		DemandResponse demandResponse = demandService.migrate(demandRequest);
+
+		return new ResponseEntity<>(demandResponse, HttpStatus.CREATED);
+	}
+    
 }
