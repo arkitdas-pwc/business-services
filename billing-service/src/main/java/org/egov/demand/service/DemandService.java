@@ -52,6 +52,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.amendment.model.Amendment;
 import org.egov.demand.amendment.model.AmendmentCriteria;
@@ -493,6 +495,48 @@ public class DemandService {
 		}
 
 		return updateListForConsumedAmendments;
+	}
+
+	public DemandResponse migrate(@Valid DemandRequest demandRequest) {
+
+
+		DocumentContext mdmsData = util.getMDMSData(demandRequest.getRequestInfo(),
+				demandRequest.getDemands().get(0).getTenantId());
+
+		demandValidatorV1.validatedemandForMigrate(demandRequest, true, mdmsData);
+
+		log.info("the demand request in create async : {}", demandRequest);
+
+		RequestInfo requestInfo = demandRequest.getRequestInfo();
+		List<Demand> demands = demandRequest.getDemands();
+		AuditDetails auditDetail = util.getAuditDetail(requestInfo);
+		
+		List<AmendmentUpdate> amendmentUpdates = consumeAmendmentIfExists(demands, auditDetail);
+		generateAndSetIdsForNewDemands(demands, auditDetail);
+
+		List<Demand> demandsToBeCreated = new ArrayList<>();
+		List<Demand> demandToBeUpdated = new ArrayList<>();
+
+		String businessService = demandRequest.getDemands().get(0).getBusinessService();
+		Boolean isAdvanceAllowed = util.getIsAdvanceAllowed(businessService, mdmsData);
+
+		if(isAdvanceAllowed){
+			apportionAdvanceIfExist(demandRequest,mdmsData,demandsToBeCreated,demandToBeUpdated);
+		}
+		else {
+			demandsToBeCreated.addAll(demandRequest.getDemands());
+		}
+
+		save(new DemandRequest(requestInfo,demandsToBeCreated));
+		if (!CollectionUtils.isEmpty(amendmentUpdates))
+			amendmentRepository.updateAmendment(amendmentUpdates);
+
+		if(!CollectionUtils.isEmpty(demandToBeUpdated))
+			update(new DemandRequest(requestInfo,demandToBeUpdated), null);
+		
+		billRepoV2.updateBillStatus(demands.stream().map(Demand::getConsumerCode).collect(Collectors.toList()), BillStatus.EXPIRED);
+		
+		return new DemandResponse(responseInfoFactory.getResponseInfo(requestInfo, HttpStatus.CREATED), demands);
 	}
 	
 }

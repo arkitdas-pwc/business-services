@@ -51,6 +51,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.config.ApplicationProperties;
 import org.egov.demand.model.Demand;
@@ -609,5 +611,103 @@ public class DemandValidatorV1 {
 			}
 		}
 		demand.setPayer(payer);
+	}
+
+	public void validatedemandForMigrate(@Valid DemandRequest demandRequest, boolean isCreate, DocumentContext mdmsData) {
+
+
+		RequestInfo requestInfo = demandRequest.getRequestInfo();
+		List<Demand> demands = demandRequest.getDemands();
+
+		/*
+		 * Extracting the respective masters from DocumentContext 
+		 */
+		List<String> businessServiceCodes = mdmsData.read(BUSINESSSERVICE_PATH_CODE);
+		List<TaxHeadMaster> taxHeads = Arrays.asList(mapper.convertValue(mdmsData.read(TAXHEADMASTER_PATH_CODE), TaxHeadMaster[].class));
+		
+		/*
+		 * grouping by the list of taxHeads to a map of businessService and List of taxHead codes
+		 */
+		Map<String, Map<String,TaxHeadMaster>> businessTaxCodeMap = taxHeads.stream().collect(Collectors.groupingBy(
+				TaxHeadMaster::getService, Collectors.toMap(TaxHeadMaster::getCode, Function.identity())));
+		
+		/*
+		 * mdms-data read returns a list of hashMap which is converted to array of tax-period and then to list
+		 */
+		List<TaxPeriod> taxPeriods = Arrays.asList(mapper.convertValue(mdmsData.read(TAXPERIOD_PATH_CODE), TaxPeriod[].class));
+
+		/*
+		 * Grouping by the list periods on business services
+		 */
+		Map<String, List<TaxPeriod>> taxPeriodBusinessMap = taxPeriods.stream()
+				.collect(Collectors.groupingBy(TaxPeriod::getService));
+		Set<String> payerIds = new HashSet<>();
+		
+		/* demand details list for validation */
+		List<DemandDetail> detailsForValidation = new ArrayList<>();
+		
+		/* business consumer map for validating uniqueness of consumer code */
+		Map<String, Set<String>> businessConsumerValidatorMap = new HashMap<>();
+		
+		Set<String> businessServicesWithNoTaxPeriods = new HashSet<>();
+		Set<String> businessServicesNotFound = new HashSet<>();
+		Set<String> taxHeadsNotFound = new HashSet<>();
+
+		Map<String, String> errorMap = new HashMap<>();
+
+		for (Demand demand : demands) {
+
+			List<DemandDetail> details = demand.getDemandDetails();
+			Map<String, TaxHeadMaster> taxHeadMap = businessTaxCodeMap.get(demand.getBusinessService());
+			log.info(" the taxhead map : " + taxHeadMap);
+			detailsForValidation.addAll(details);
+
+			if (isCreate) {
+				/* passing the businessConsumerValidator map to be enriched for validation */
+				enrichConsumerCodesWithBusinessMap(businessConsumerValidatorMap, demand);
+			}
+
+			if (null != demand.getPayer() && !StringUtils.isEmpty(demand.getPayer().getUuid()))
+				payerIds.add(demand.getPayer().getUuid());
+
+			if (!businessServiceCodes.contains(demand.getBusinessService()))
+				businessServicesNotFound.add(demand.getBusinessService());
+
+			if (!CollectionUtils.isEmpty(taxHeadMap))
+				details.forEach(detail -> {
+
+					if (!taxHeadMap.containsKey(detail.getTaxHeadMasterCode()))
+						taxHeadsNotFound.add(detail.getTaxHeadMasterCode());
+				});
+
+			validateTaxPeriod(taxPeriodBusinessMap, demand, errorMap, businessServicesWithNoTaxPeriods);
+			
+			// by default demands are being set to active during create but validation should be done for inactive/ cancelled demand in another logic
+			if(demand.getStatus() == null) demand.setStatus(StatusEnum.ACTIVE);
+		}
+
+		/*
+		 * Validating payer(Citizen) data
+		 */
+		validatePayer(demands, payerIds, requestInfo, errorMap);
+		/*
+		 * Validating demand details for tax and collection amount
+		 * 
+		 * if called from update no need to call detail validation 
+		 */
+//		validateDemandDetailsForAmount(detailsForValidation, errorMap);
+		
+		if (isCreate) {
+			/* validating consumer codes for create demands*/
+			validateConsumerCodes(demands, businessConsumerValidatorMap, errorMap);
+		}
+			
+		/* passing collected values to throw errors
+		 * 
+		 * method separated to increase readability
+		 * */
+		throwErrorForCreate(businessServicesWithNoTaxPeriods, businessServicesNotFound, taxHeadsNotFound, errorMap);
+	
+		
 	}
 }
