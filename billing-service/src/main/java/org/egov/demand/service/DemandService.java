@@ -52,8 +52,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.amendment.model.Amendment;
 import org.egov.demand.amendment.model.AmendmentCriteria;
@@ -497,7 +495,7 @@ public class DemandService {
 		return updateListForConsumedAmendments;
 	}
 
-	public DemandResponse migrate(@Valid DemandRequest demandRequest) {
+	public DemandResponse migrate(DemandRequest demandRequest) {
 
 
 		DocumentContext mdmsData = util.getMDMSData(demandRequest.getRequestInfo(),

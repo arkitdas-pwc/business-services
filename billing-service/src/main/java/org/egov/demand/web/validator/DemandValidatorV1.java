@@ -22,11 +22,11 @@ import static org.egov.demand.util.Constants.INVALID_BUSINESS_FOR_TAXPERIOD_MSG;
 import static org.egov.demand.util.Constants.INVALID_BUSINESS_FOR_TAXPERIOD_REPLACE_TEXT;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_COLLECTION_TEXT;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_ERROR_MSG;
-import static org.egov.demand.util.Constants.INVALID_NEGATIVE_DEMAND_DETAIL_ERROR_MSG;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_KEY;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_MSG;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_REPLACETEXT;
 import static org.egov.demand.util.Constants.INVALID_DEMAND_DETAIL_TAX_TEXT;
+import static org.egov.demand.util.Constants.INVALID_NEGATIVE_DEMAND_DETAIL_ERROR_MSG;
 import static org.egov.demand.util.Constants.TAXHEADMASTER_PATH_CODE;
 import static org.egov.demand.util.Constants.TAXHEADS_NOT_FOUND_KEY;
 import static org.egov.demand.util.Constants.TAXHEADS_NOT_FOUND_MSG;
@@ -50,8 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.validation.Valid;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.config.ApplicationProperties;
@@ -613,7 +611,7 @@ public class DemandValidatorV1 {
 		demand.setPayer(payer);
 	}
 
-	public void validatedemandForMigrate(@Valid DemandRequest demandRequest, boolean isCreate, DocumentContext mdmsData) {
+	public void validatedemandForMigrate(DemandRequest demandRequest, boolean isCreate, DocumentContext mdmsData) {
 
 
 		RequestInfo requestInfo = demandRequest.getRequestInfo();
