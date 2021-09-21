@@ -1,1 +1,4 @@
-
+Steps to build the Docker Image:
+Step 1: We need to copy the emas3.war and emasadmin3.war files into the emAS directory from the server below location:
+Step 2: execute the docker build command - docker build -t emas:rel1-ddmmyyyy-1 -f Dockerfile .
+Step 3. Push the image using docker push command
