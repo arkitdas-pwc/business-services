@@ -46,6 +46,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -126,15 +127,17 @@ public class DscController {
 	@GetMapping(value="/_getCheck")
 	public String test()
 	{
-		return applicationProperties.getLicPath();
+		return applicationProperties.getTokenLogPath();
 	}
 	
     @RequestMapping(value = "/_getTokenInput", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<TokenInputResponse> token(@RequestBody  TokenRequest tokenRequest)  {
+    public ResponseEntity<TokenInputResponse> token(@RequestBody  TokenRequest tokenRequest) throws IOException  {
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
     	emBridge bridge = null;
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getTokenLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -164,8 +167,10 @@ public class DscController {
     public ResponseEntity<TokenResponse> tokens(@RequestBody  TokenRequest tokenRequest)  {
     	List<String> tokens=new ArrayList<String>();
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getTokenLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -185,8 +190,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> cert(@RequestBody CertificateRequest certificateRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getCertLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -213,8 +220,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<CertificateResponse> certa(@RequestBody  CertificateRequest certificateRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getCertLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -256,8 +265,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> dataSignInput(@RequestBody DataSignRequest dataSignRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getDataSignLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -295,8 +306,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<DataSignResponse> dataSign(@RequestBody  DataSignRequest dataSignRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getDataSignLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -383,8 +396,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> dpdfSignInput(@RequestBody DataSignRequest dataSignRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getDataSignLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -418,8 +433,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<DataSignResponse> pdfSign(@RequestBody  DataSignRequest dataSignRequest)  {
     	emBridge bridge = null;
+    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    	URL url=classloader.getResource("OdishaUrban.lic");
 		try {
-			bridge = new emBridge(applicationProperties.getLicPath(),applicationProperties.getDataSignLogPath());
+			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

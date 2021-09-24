@@ -53,18 +53,8 @@ import lombok.Setter;
 public class ApplicationProperties {
 
     
-    @Value("${dsc.token.log.path}")
+    @Value("${dsc.log.path}")
     private String tokenLogPath;
-    
-    @Value("${dsc.cert.log.path}")
-    private String certLogPath;
-    
-    @Value("${dsc.data.sign.log.path}")
-    private String dataSignLogPath;
-    
-    @Value("${dsc.lic.path}")
-    private String licPath;
-    
     
     @Value("${dsc.emas.url}")
     private String emasWsUrl;
