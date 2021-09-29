@@ -123,11 +123,14 @@ public class DscController {
     
 	@Autowired
     private RestTemplate restTemplate;
+	
+	private String logPath=System.getProperty("user.dir")+"/"+"DS/Log";
+	private String tempPath=System.getProperty("user.dir")+"/"+"DS/Temp";
 
 	@GetMapping(value="/_getCheck")
 	public String test()
 	{
-		return applicationProperties.getTokenLogPath();
+		return applicationProperties.getEmasWsUrl();
 	}
 	
     @RequestMapping(value = "/_getTokenInput", method = RequestMethod.POST)
@@ -136,8 +139,15 @@ public class DscController {
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
     	emBridge bridge = null;
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -164,13 +174,20 @@ public class DscController {
     
     @RequestMapping(value = "/_getTokens", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<TokenResponse> tokens(@RequestBody  TokenRequest tokenRequest)  {
+    public ResponseEntity<TokenResponse> tokens(@RequestBody  TokenRequest tokenRequest) throws IOException  {
     	List<String> tokens=new ArrayList<String>();
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -188,12 +205,19 @@ public class DscController {
     
     @RequestMapping(value = "/_getInputCertificate", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<TokenInputResponse> cert(@RequestBody CertificateRequest certificateRequest)  {
+    public ResponseEntity<TokenInputResponse> cert(@RequestBody CertificateRequest certificateRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -218,12 +242,19 @@ public class DscController {
     
     @RequestMapping(value = "/_getCertificate", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<CertificateResponse> certa(@RequestBody  CertificateRequest certificateRequest)  {
+    public ResponseEntity<CertificateResponse> certa(@RequestBody  CertificateRequest certificateRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -263,12 +294,19 @@ public class DscController {
     
     @RequestMapping(value = "/_dataSignInput", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<TokenInputResponse> dataSignInput(@RequestBody DataSignRequest dataSignRequest)  {
+    public ResponseEntity<TokenInputResponse> dataSignInput(@RequestBody DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -304,12 +342,19 @@ public class DscController {
     
     @RequestMapping(value = "/_dataSign", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<DataSignResponse> dataSign(@RequestBody  DataSignRequest dataSignRequest)  {
+    public ResponseEntity<DataSignResponse> dataSign(@RequestBody  DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -394,12 +439,24 @@ public class DscController {
 	
 	@RequestMapping(value = "/_pdfSignInput", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<TokenInputResponse> dpdfSignInput(@RequestBody DataSignRequest dataSignRequest)  {
+    public ResponseEntity<TokenInputResponse> dpdfSignInput(@RequestBody DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	File tempFile=new File(tempPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
+    	System.out.println("tempPath :::"+tempFile.getCanonicalPath());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+			if (!tempFile.exists()) {
+				tempFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -408,7 +465,7 @@ public class DscController {
 		inputs.add(input);
 		PKCSBulkPdfHashSignRequest pKCSBulkPdfHashSignRequest = new PKCSBulkPdfHashSignRequest();
 		pKCSBulkPdfHashSignRequest.setBulkInput(inputs);
-		pKCSBulkPdfHashSignRequest.setTempFolder(applicationProperties.getServerTempPath());
+		pKCSBulkPdfHashSignRequest.setTempFolder(tempFile.getCanonicalPath());
 		pKCSBulkPdfHashSignRequest.setKeyStoreDisplayName(dataSignRequest.getTokenDisplayName());
 		pKCSBulkPdfHashSignRequest.setKeyStorePassphrase(dataSignRequest.getKeyStorePassPhrase());
 		pKCSBulkPdfHashSignRequest.setKeyId(dataSignRequest.getKeyId());
@@ -431,19 +488,31 @@ public class DscController {
     
     @RequestMapping(value = "/_pdfSign", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<DataSignResponse> pdfSign(@RequestBody  DataSignRequest dataSignRequest)  {
+    public ResponseEntity<DataSignResponse> pdfSign(@RequestBody  DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
     	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     	URL url=classloader.getResource("OdishaUrban.lic");
+    	File logFile=new File(logPath);
+    	File tempFile=new File(tempPath);
+    	System.out.println("logPath :::"+logFile.getCanonicalPath());
+    	System.out.println("lic path :::"+url.getFile());
+    	System.out.println("tempPath :::"+tempFile.getCanonicalPath());
 		try {
-			bridge = new emBridge(url.getFile(),applicationProperties.getTokenLogPath());
+			if (!logFile.exists()) {
+	            logFile.mkdirs();
+			}
+			if (!tempFile.exists()) {
+				tempFile.mkdirs();
+			}
+	            	
+			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		ResponseDataPKCSBulkSign apiResponse = bridge.decPKCSBulkSign(dataSignRequest.getResponseData(), applicationProperties.getServerTempPath());
+		ResponseDataPKCSBulkSign apiResponse = bridge.decPKCSBulkSign(dataSignRequest.getResponseData(), tempFile.getCanonicalPath());
 		String fileId = null;
 		try {
-			fileId = populateSignedPdfFileStoreId(apiResponse,applicationProperties.getServerTempPath(),dataSignRequest.getFileName(),dataSignRequest.getRequestInfo().getUserInfo().getId(),dataSignRequest.getTennantId(),dataSignRequest.getModuleName());
+			fileId = populateSignedPdfFileStoreId(apiResponse,tempFile.getCanonicalPath(),dataSignRequest.getFileName(),dataSignRequest.getRequestInfo().getUserInfo().getId(),dataSignRequest.getTennantId(),dataSignRequest.getModuleName());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

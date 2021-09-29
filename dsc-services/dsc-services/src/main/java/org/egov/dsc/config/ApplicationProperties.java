@@ -51,10 +51,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ApplicationProperties {
-
-    
-    @Value("${dsc.log.path}")
-    private String tokenLogPath;
     
     @Value("${dsc.emas.url}")
     private String emasWsUrl;
@@ -70,9 +66,6 @@ public class ApplicationProperties {
     
     @Value("${dsc.pdf.embridge.property.four}")
     private String pdfProprty4;
-    
-    @Value("${dsc.embridge.server.temp.path}")
-    private String serverTempPath;
     
     @Value("${egov.filestore.service.endpoint}")
     private String egovFileStoreSerHost;
