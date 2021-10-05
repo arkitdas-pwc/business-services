@@ -160,7 +160,9 @@ public class DscController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		System.out.println("data.getStatus() :::"+data.getStatus());
+		System.out.println("data.getErrorCode() :::"+data.getErrorCode());
+		System.out.println("data.getErrorMsg() :::"+data.getErrorMsg());
     	System.out.println("Encrypted Data :"+data.getEncryptedData());
     	System.out.println("Encrypted Key ID :"+data.getEncryptionKeyID());	
 
