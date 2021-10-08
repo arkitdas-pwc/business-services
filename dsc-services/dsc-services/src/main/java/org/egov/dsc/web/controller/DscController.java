@@ -124,8 +124,9 @@ public class DscController {
 	@Autowired
     private RestTemplate restTemplate;
 	
-	private String logPath=System.getProperty("user.dir")+"/"+"DS/Log";
+	private String logPath=System.getProperty("user.dir")+"/DS/Log";
 	private String tempPath=System.getProperty("user.dir")+"/"+"DS/Temp";
+	private String licPath=System.getProperty("user.dir")+"/"+"DS/Lic";
 
 	@GetMapping(value="/_getCheck")
 	public String test()
@@ -140,14 +141,19 @@ public class DscController {
     	URL url=classloader.getResource("OdishaUrban.lic");
     	emBridge bridge = null;
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
+    	System.out.println("lic path 1 :::"+url.getFile());
+    	System.out.println("lic path 2 :::"+licPath);
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
+			if (!licFile.exists()) {
+				licFile.mkdirs();
+			}
 	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

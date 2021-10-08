@@ -3,6 +3,17 @@ FROM egovio/apline-jre:8u121
 # INSTRUCTIONS ON HOW TO BUILD JAR:
 # Move to the location where pom.xml is exist in project and build project using below command
 # "mvn clean package"
+
+RUN mkdir /DS
+
+RUN mkdir /DS/Log
+
+RUN mkdir /DS/Temp
+
+RUN mkdir /DS/Lic
+
+COPY *.lic /DS/Lic
+
 COPY /target/dsc-services-1.1.0-SNAPSHOT.jar /opt/egov/dsc-services.jar
 
 COPY start.sh /usr/bin/start.sh
