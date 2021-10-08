@@ -137,13 +137,10 @@ public class DscController {
     @RequestMapping(value = "/_getTokenInput", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<TokenInputResponse> token(@RequestBody  TokenRequest tokenRequest) throws IOException  {
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	emBridge bridge = null;
     	File logFile=new File(logPath);
     	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path 1 :::"+url.getFile());
     	System.out.println("lic path 2 :::"+licPath);
 		try {
 			if (!logFile.exists()) {
@@ -185,17 +182,18 @@ public class DscController {
     public ResponseEntity<TokenResponse> tokens(@RequestBody  TokenRequest tokenRequest) throws IOException  {
     	List<String> tokens=new ArrayList<String>();
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
+			if (!licFile.exists()) {
+				licFile.mkdirs();
+			}
 	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -215,17 +213,18 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> cert(@RequestBody CertificateRequest certificateRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
+			if (!licFile.exists()) {
+				licFile.mkdirs();
+			}
 	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -252,17 +251,17 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<CertificateResponse> certa(@RequestBody  CertificateRequest certificateRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
-	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			if (!licFile.exists()) {
+	            licFile.mkdirs();
+			}
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -304,17 +303,17 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> dataSignInput(@RequestBody DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
-	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			if (!licFile.exists()) {
+	            licFile.mkdirs();
+			}
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -352,17 +351,17 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<DataSignResponse> dataSign(@RequestBody  DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
-	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			if (!licFile.exists()) {
+	            licFile.mkdirs();
+			}
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -449,12 +448,10 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<TokenInputResponse> dpdfSignInput(@RequestBody DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	File tempFile=new File(tempPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
     	System.out.println("tempPath :::"+tempFile.getCanonicalPath());
 		try {
 			if (!logFile.exists()) {
@@ -463,8 +460,10 @@ public class DscController {
 			if (!tempFile.exists()) {
 				tempFile.mkdirs();
 			}
-	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			if (!licFile.exists()) {
+				licFile.mkdirs();
+			}
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -498,22 +497,23 @@ public class DscController {
     @ResponseBody
     public ResponseEntity<DataSignResponse> pdfSign(@RequestBody  DataSignRequest dataSignRequest) throws IOException  {
     	emBridge bridge = null;
-    	ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    	URL url=classloader.getResource("OdishaUrban.lic");
     	File logFile=new File(logPath);
+    	File licFile=new File(licPath);
     	File tempFile=new File(tempPath);
     	System.out.println("logPath :::"+logFile.getCanonicalPath());
-    	System.out.println("lic path :::"+url.getFile());
     	System.out.println("tempPath :::"+tempFile.getCanonicalPath());
 		try {
 			if (!logFile.exists()) {
 	            logFile.mkdirs();
 			}
+			if (!licFile.exists()) {
+	            licFile.mkdirs();
+			}
 			if (!tempFile.exists()) {
 				tempFile.mkdirs();
 			}
 	            	
-			bridge = new emBridge(url.getFile(),logFile.getCanonicalPath());
+			bridge = new emBridge(licPath+"/OdishaUrban.lic",logFile.getCanonicalPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
