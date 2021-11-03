@@ -163,14 +163,19 @@ public class PaymentQueryBuilder {
 			+ "bd.additionaldetails as bd_additionaldetails,  ad.additionaldetails as ad_additionaldetails "
 			+ "FROM egcl_bill b LEFT OUTER JOIN egcl_billdetial bd ON b.id = bd.billid AND b.tenantid = bd.tenantid "
 			+ "LEFT OUTER JOIN egcl_billaccountdetail ad ON bd.id = ad.billdetailid AND bd.tenantid = ad.tenantid "
-			+ "WHERE b.id IN (:id);"; 
+			+ "WHERE b.id IN (:id)"; 
 
 
 
 	public static String getBillQuery() {
-		return BILL_BASE_QUERY;
+		StringBuilder baseQuery = new StringBuilder(BILL_BASE_QUERY);
+		addOrderByClauseWithBillingPeriod(baseQuery);
+		return baseQuery.toString();
 	}
 	
+	private static String addOrderByClauseWithBillingPeriod(StringBuilder selectQuery) {
+        return selectQuery.append("  ORDER BY bd.fromperiod DESC;").toString();
+    }
 	
     public static MapSqlParameterSource getParametersForPaymentCreate(Payment payment) {
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
