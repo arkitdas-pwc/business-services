@@ -366,6 +366,14 @@ public class PaymentQueryBuilder {
             }
 
         }
+	    
+	if (!CollectionUtils.isEmpty(searchCriteria.getBusinessServices())) {
+	   if(searchCriteria.getBusinessServices() != null && searchCriteria.getBusinessServices().contains("TL"))
+	   {
+	        addClauseIfRequired(preparedStatementValues, selectQuery);
+	    	selectQuery.append(" py.totalamountpaid > 0");                
+	   }
+	}
 
         if(!CollectionUtils.isEmpty(searchCriteria.getIds())) {
             addClauseIfRequired(preparedStatementValues, selectQuery);
