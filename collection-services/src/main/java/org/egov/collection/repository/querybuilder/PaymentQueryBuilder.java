@@ -171,7 +171,6 @@ public class PaymentQueryBuilder {
 		return BILL_BASE_QUERY;
 	}
 	
-	
     public static MapSqlParameterSource getParametersForPaymentCreate(Payment payment) {
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
 
