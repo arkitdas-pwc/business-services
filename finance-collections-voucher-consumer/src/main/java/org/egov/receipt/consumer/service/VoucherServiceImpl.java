@@ -67,6 +67,8 @@ import org.egov.receipt.consumer.model.FinanceMdmsModel;
 import org.egov.receipt.consumer.model.Function;
 import org.egov.receipt.consumer.model.Functionary;
 import org.egov.receipt.consumer.model.Fund;
+import org.egov.receipt.consumer.model.MisReceiptsDetailsRequest;
+import org.egov.receipt.consumer.model.MisReceiptsDetailsResponse;
 import org.egov.receipt.consumer.model.InstrumentContract;
 import org.egov.receipt.consumer.model.InstrumentVoucherContract;
 import org.egov.receipt.consumer.model.ProcessStatus;
@@ -82,6 +84,7 @@ import org.egov.receipt.consumer.model.VoucherResponse;
 import org.egov.receipt.consumer.model.VoucherSearchCriteria;
 import org.egov.receipt.consumer.model.VoucherSearchRequest;
 import org.egov.receipt.consumer.repository.ServiceRequestRepository;
+import org.egov.receipt.consumer.v2.model.PaymentRequest;
 import org.egov.receipt.custom.exception.VoucherCustomException;
 import org.egov.reciept.consumer.config.PropertiesManager;
 import org.slf4j.Logger;
@@ -89,6 +92,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -102,6 +107,9 @@ public class VoucherServiceImpl implements VoucherService {
 	private ServiceRequestRepository serviceRequestRepository;
 	@Autowired
 	private ObjectMapper mapper;
+
+	@Autowired
+	private RestTemplate restTemplate;
 
 	final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
 	final SimpleDateFormat ddMMMyyyyFormatter = new SimpleDateFormat("dd-MMM-yyyy");
@@ -119,7 +127,7 @@ public class VoucherServiceImpl implements VoucherService {
 	 * This method is use to create the voucher specifically for receipt
 	 * request.
 	 */
-	public VoucherResponse createReceiptVoucher(ReceiptReq receiptRequest, FinanceMdmsModel finSerMdms, String collectionVersion)
+	public VoucherResponse createReceiptVoucher(ReceiptReq receiptRequest, FinanceMdmsModel finSerMdms, String collectionVersion,PaymentRequest paymentRequest)
 			throws Exception {
 		Receipt receipt = receiptRequest.getReceipt().get(0);
 		String reciptNumber=receipt.getReceiptNumber();
@@ -127,6 +135,47 @@ public class VoucherServiceImpl implements VoucherService {
 //		final StringBuilder voucher_create_url = new StringBuilder(propertiesManager.getErpURLBytenantId(tenantId)
 //				+ propertiesManager.getVoucherCreateUrl());
 //		VoucherRequest voucherRequest = new VoucherRequest();
+		final StringBuilder voucher_mis_url = new StringBuilder(propertiesManager.getErpURLBytenantId(tenantId)
+				+ propertiesManager.getMisCreateUrl());
+		//misc receipt start
+		System.out.println("cash book related changes start");
+		try
+		{
+			if(paymentRequest != null && paymentRequest.getPayment() != null)
+			{
+				org.egov.receipt.consumer.model.MisReceiptsPOJO misreceipt= new org.egov.receipt.consumer.model.MisReceiptsPOJO();
+		        
+		        misreceipt.setBank_branch(paymentRequest.getPayment().getBankBranch());
+		        misreceipt.setBank_name(paymentRequest.getPayment().getBankName());
+		        misreceipt.setCollectedbyname(receiptRequest.getRequestInfo().getUserInfo().getName());
+		        misreceipt.setGstno(paymentRequest.getPayment().getGstno());
+		        misreceipt.setNarration(paymentRequest.getPayment().getNarration());
+		        misreceipt.setPaid_by(paymentRequest.getPayment().getPaidBy());
+		        misreceipt.setPayer_address(paymentRequest.getPayment().getPayerAddress());
+		        misreceipt.setPayment_mode(paymentRequest.getPayment().getPaymentMode().toString());
+		        misreceipt.setPayment_status(paymentRequest.getPayment().getPaymentStatus().toString());
+		        misreceipt.setPayments_id(paymentRequest.getPayment().getId());
+		        misreceipt.setReceipt_number(paymentRequest.getPayment().getPaymentDetails().get(0).getReceiptNumber());
+		        misreceipt.setReceipt_date(paymentRequest.getPayment().getPaymentDetails().get(0).getReceiptDate());
+		        misreceipt.setServicename(paymentRequest.getPayment().getPaymentDetails().get(0).getBusinessService());
+		        misreceipt.setSubdivison(paymentRequest.getPayment().getSubdivison());
+		        misreceipt.setTotal_amt_paid(paymentRequest.getPayment().getTotalAmountPaid());
+				misreceipt.setChequeddno(paymentRequest.getPayment().getInstrumentNumber());
+		        misreceipt.setChequedddate(paymentRequest.getPayment().getInstrumentDate());
+		        System.out.println("Data ::: "+misreceipt.toString());
+		        LOGGER.info("url------------->> "+voucher_mis_url);
+		        MisReceiptsDetailsRequest request = new MisReceiptsDetailsRequest();
+		        request.setTenantId(tenantId);
+		        request.setRequestInfo(receiptRequest.getRequestInfo());
+		        request.setMisReceiptsPOJO(misreceipt);
+		        restTemplate.postForObject(voucher_mis_url.toString(), request, MisReceiptsDetailsResponse.class);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("cashbook changes end");
+		//misc receipt end
 		Voucher voucher = new Voucher();
 		voucher.setReceiptNumber(reciptNumber);
 		voucher.setTenantId(tenantId);
