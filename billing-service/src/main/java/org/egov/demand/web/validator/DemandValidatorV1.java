@@ -420,12 +420,23 @@ public class DemandValidatorV1 {
 					&& collection.compareTo(tax) != 0 && collection.compareTo(BigDecimal.ZERO) != 0;
 			
 			if (isTaxGtZeroAndCollectionGtTaxOrCollectionLtZero) {
+				log.error("demand details: id: "+demandDetail.getId()+" taxhead: "+demandDetail.getTaxHeadMasterCode()+
+						" taxAmount: "+demandDetail.getTaxAmount().toString()+" collectedAmount: "+demandDetail.getCollectionAmount().toString()+
+						" demandid: "+demandDetail.getDemandId());
+				log.error(INVALID_DEMAND_DETAIL_ERROR_MSG
+						.replace(INVALID_DEMAND_DETAIL_COLLECTION_TEXT, collection.toString())
+						.replace(INVALID_DEMAND_DETAIL_TAX_TEXT, tax.toString()));
 				errors.add(INVALID_DEMAND_DETAIL_ERROR_MSG
 						.replace(INVALID_DEMAND_DETAIL_COLLECTION_TEXT, collection.toString())
 						.replace(INVALID_DEMAND_DETAIL_TAX_TEXT, tax.toString()));
 			}
 			else if (isTaxLtZeroAndCollectionNeToZeroAndCollectionGtTax) {
-
+				log.error("demand details: id: "+demandDetail.getId()+" taxhead: "+demandDetail.getTaxHeadMasterCode()+
+						" taxAmount: "+demandDetail.getTaxAmount().toString()+" collectedAmount: "+demandDetail.getCollectionAmount().toString()+
+						" demandid: "+demandDetail.getDemandId());
+				log.error(INVALID_NEGATIVE_DEMAND_DETAIL_ERROR_MSG
+							.replace(INVALID_DEMAND_DETAIL_COLLECTION_TEXT, collection.toString())
+							.replace(INVALID_DEMAND_DETAIL_TAX_TEXT, tax.toString()));
 					errors.add(INVALID_NEGATIVE_DEMAND_DETAIL_ERROR_MSG
 							.replace(INVALID_DEMAND_DETAIL_COLLECTION_TEXT, collection.toString())
 							.replace(INVALID_DEMAND_DETAIL_TAX_TEXT, tax.toString()));
