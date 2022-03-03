@@ -139,7 +139,8 @@ public class PaymentEnricher {
 			paymentDetail.setTenantId(payment.getTenantId());
 			paymentDetail.setAuditDetails(auditDetails);
 			paymentDetail.setReceiptType(ReceiptType.BILLBASED.toString());
-			paymentDetail.setReceiptDate(System.currentTimeMillis());
+			//paymentDetail.setReceiptDate(System.currentTimeMillis());
+			System.out.println("paymentDetail.getReceiptDate():::: "+paymentDetail.getReceiptDate());
 			paymentDetail.setTotalDue(billIdToBillMap.get(paymentDetail.getBillId()).getTotalAmount());
 		});
 		if (!errorMap.isEmpty())
@@ -197,7 +198,8 @@ public class PaymentEnricher {
 		else
 			payment.setInstrumentStatus(InstrumentStatusEnum.APPROVED);
 
-		payment.setTransactionDate(new Date().getTime());
+		//payment.setTransactionDate(new Date().getTime());
+		System.out.println("payment.getTransactionDate():::: "+payment.getTransactionDate());
 		if(paymentMode.equalsIgnoreCase(CASH.name()) || paymentMode.equalsIgnoreCase(CARD.name()) || paymentMode.equalsIgnoreCase(ONLINE.name())
 				|| paymentMode.equalsIgnoreCase(ONLINE_NEFT.name()) || paymentMode.equalsIgnoreCase(ONLINE_RTGS.name())) {
 			payment.setInstrumentDate(payment.getTransactionDate());
