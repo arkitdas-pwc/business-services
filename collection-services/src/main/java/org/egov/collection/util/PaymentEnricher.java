@@ -139,7 +139,10 @@ public class PaymentEnricher {
 			paymentDetail.setTenantId(payment.getTenantId());
 			paymentDetail.setAuditDetails(auditDetails);
 			paymentDetail.setReceiptType(ReceiptType.BILLBASED.toString());
-			//paymentDetail.setReceiptDate(System.currentTimeMillis());
+			if(!(payment !=null && payment.getPayerId() != null && payment.getPayerId().equalsIgnoreCase("FIN")))
+			{
+				paymentDetail.setReceiptDate(System.currentTimeMillis());
+			}
 			System.out.println("paymentDetail.getReceiptDate():::: "+paymentDetail.getReceiptDate());
 			paymentDetail.setTotalDue(billIdToBillMap.get(paymentDetail.getBillId()).getTotalAmount());
 		});
@@ -197,8 +200,10 @@ public class PaymentEnricher {
 			payment.setInstrumentStatus(InstrumentStatusEnum.REMITTED);
 		else
 			payment.setInstrumentStatus(InstrumentStatusEnum.APPROVED);
-
-		//payment.setTransactionDate(new Date().getTime());
+		if(!(payment !=null && payment.getPayerId() != null && payment.getPayerId().equalsIgnoreCase("FIN")))
+		{
+			payment.setTransactionDate(new Date().getTime());
+		}
 		System.out.println("payment.getTransactionDate():::: "+payment.getTransactionDate());
 		if(paymentMode.equalsIgnoreCase(CASH.name()) || paymentMode.equalsIgnoreCase(CARD.name()) || paymentMode.equalsIgnoreCase(ONLINE.name())
 				|| paymentMode.equalsIgnoreCase(ONLINE_NEFT.name()) || paymentMode.equalsIgnoreCase(ONLINE_RTGS.name())) {
