@@ -321,6 +321,7 @@ public class BillServicev2 {
 		 * Fetching Required master data
 		 */
 		String tenantId = demands.get(0).getTenantId();
+		String businessService = demands.get(0).getBusinessService();
 		Set<String> businessCodes = new HashSet<>();
 		Set<String> taxHeadCodes = new HashSet<>();
 
@@ -363,7 +364,8 @@ public class BillServicev2 {
 				billAmount = billAmount.add(billDetail.getAmount());
 			}
 			
-			if (billAmount.compareTo(BigDecimal.ZERO) >= 0) {
+			if ((billAmount.compareTo(BigDecimal.ZERO) >= 0)|| (billAmount.compareTo(BigDecimal.ZERO) < 0 && "WS".equalsIgnoreCase(businessService))) {
+//			if (billAmount.compareTo(BigDecimal.ZERO) >= 0) {
 
 				BillV2 bill = BillV2.builder()
 					.auditDetails(util.getAuditDetail(requestInfo))
