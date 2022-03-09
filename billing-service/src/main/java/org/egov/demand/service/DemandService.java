@@ -44,6 +44,7 @@ import static org.egov.demand.util.Constants.ADVANCE_TAXHEAD_JSONPATH_CODE;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ import org.egov.demand.model.DemandApportionRequest;
 import org.egov.demand.model.DemandCriteria;
 import org.egov.demand.model.DemandDetail;
 import org.egov.demand.model.PaymentBackUpdateAudit;
+import org.egov.demand.producer.Producer;
 import org.egov.demand.repository.AmendmentRepository;
 import org.egov.demand.repository.BillRepositoryV2;
 import org.egov.demand.repository.DemandRepository;
@@ -81,6 +83,7 @@ import org.egov.demand.web.contract.factory.ResponseFactory;
 import org.egov.demand.web.validator.DemandValidatorV1;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -126,6 +129,12 @@ public class DemandService {
 	@Autowired
 	private DemandValidatorV1 demandValidatorV1;
 	
+	@Autowired
+	private Producer producer;
+
+	@Value("${kafka.topic.ws.installment.update}")
+    private String wsInstallmentUpdateTopic;
+	
 	/**
 	 * Method to create new demand 
 	 * 
@@ -164,6 +173,13 @@ public class DemandService {
 		}
 
 		save(new DemandRequest(requestInfo,demandsToBeCreated));
+		
+		// pushed to update water installment table for newly created demand
+		Map<String, Object> installmentUpdateRequest = new HashMap<>();
+		installmentUpdateRequest.put("requestInfo", requestInfo);
+		installmentUpdateRequest.put("demands", demandsToBeCreated);
+		producer.push(wsInstallmentUpdateTopic, installmentUpdateRequest);
+				
 		if (!CollectionUtils.isEmpty(amendmentUpdates))
 			amendmentRepository.updateAmendment(amendmentUpdates);
 
