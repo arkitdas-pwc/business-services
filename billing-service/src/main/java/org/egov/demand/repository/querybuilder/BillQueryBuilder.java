@@ -1,11 +1,15 @@
 package org.egov.demand.repository.querybuilder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import org.egov.demand.config.ApplicationProperties;
 import org.egov.demand.model.BillSearchCriteria;
+import org.egov.demand.model.BillV2.BillStatus;
+import org.egov.demand.model.UpdateBillCriteria;
+import org.egov.demand.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -14,9 +18,14 @@ import org.springframework.util.CollectionUtils;
 public class BillQueryBuilder {
 	
 	@Autowired
+	private Util util;
+	
+	@Autowired
 	private ApplicationProperties applicationProperties;
 	
 	public static final String REPLACE_STRING = "{replace}";
+	
+	public static final String BILL_STATUS_UPDATE_BASE_QUERY = "UPDATE egbs_bill_v1 SET status=? {replace} WHERE status='ACTIVE' AND tenantId = ? ";
 	
 	public static final String BILL_STATUS_UPDATE_QUERY = "UPDATE egbs_bill_v1 SET status=? WHERE status='ACTIVE' ";
 	
@@ -166,6 +175,43 @@ public class BillQueryBuilder {
 		
 		return BILL_STATUS_UPDATE_BATCH_QUERY;
 	}
+	
+	/**
+	 * Bill expire query builder
+	 * 
+	 * @param billIds
+	 * @param preparedStmtList
+	 */
+	public String getBillStatusUpdateQuery(UpdateBillCriteria updateBillCriteria, List<Object> preparedStmtList) {
+
+		String additionalDetailsQuery = ", additionaldetails = ?";
+		StringBuilder builder = new StringBuilder();
+		
+		preparedStmtList.add(updateBillCriteria.getStatusToBeUpdated().toString());
+
+		if (updateBillCriteria.getStatusToBeUpdated().equals(BillStatus.CANCELLED)
+				&& updateBillCriteria.getAdditionalDetails() != null) {
+
+			builder.append(BILL_STATUS_UPDATE_BASE_QUERY.replace(REPLACE_STRING, additionalDetailsQuery));
+			preparedStmtList.add(util.getPGObject(updateBillCriteria.getAdditionalDetails()));
+		} else
+			builder.append(BILL_STATUS_UPDATE_BASE_QUERY.replace(REPLACE_STRING, ""));
+
+		/*
+		 * where condition parameters
+		 */
+		preparedStmtList.add(updateBillCriteria.getTenantId());
+
+		if (!CollectionUtils.isEmpty(updateBillCriteria.getBillIds())) {
+
+			builder.append(" AND id IN ( ");
+			appendListToQuery(updateBillCriteria.getBillIds(), preparedStmtList, builder);
+		}
+
+
+		return builder.toString();
+	}
+	
 	/**
 	 * @param billIds
 	 * @param preparedStmtList
@@ -193,6 +239,24 @@ public class BillQueryBuilder {
 				query.append("," + "'" + list[i] + "'");
 		}
 		return query.append(")").toString();
+	}
+	
+	/**
+	 * @param billIds
+	 * @param preparedStmtList
+	 * @param query
+	 */
+	private void appendListToQuery(Collection<String> values, List<Object> preparedStmtList, StringBuilder query) {
+		int length = values.size();
+		String[] valueArray = values.toArray(new String[length]);
+
+		for (int i = 0; i < length; i++) {
+			query.append(" ?");
+			if (i != length - 1)
+				query.append(",");
+			preparedStmtList.add(valueArray[i]);
+		}
+		query.append(")");
 	}
 
 }
