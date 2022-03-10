@@ -76,6 +76,8 @@ import org.egov.demand.model.DemandDetail;
 import org.egov.demand.model.GenerateBillCriteria;
 import org.egov.demand.model.TaxHeadMaster;
 import org.egov.demand.model.TaxHeadMasterCriteria;
+import org.egov.demand.model.UpdateBillCriteria;
+import org.egov.demand.model.UpdateBillRequest;
 import org.egov.demand.repository.BillRepositoryV2;
 import org.egov.demand.repository.IdGenRepo;
 import org.egov.demand.repository.ServiceRequestRepository;
@@ -138,6 +140,30 @@ public class BillServicev2 {
 	
 	@Value("${kafka.topics.billgen.topic.name}")
 	private String notifTopicName;
+	
+	/**
+	 * Cancell bill operation can be carried by this method, based on consumerCodes
+	 * and businessService.
+	 * 
+	 * Only ACTIVE bills will be cancelled as of now
+	 * 
+	 * @param cancelBillCriteria
+	 * @param requestInfoWrapper
+	 */
+	public Integer cancelBill(UpdateBillRequest updateBillRequest) {
+
+		UpdateBillCriteria cancelBillCriteria = updateBillRequest.getUpdateBillCriteria();
+		Set<String> consumerCodes = cancelBillCriteria.getConsumerCodes();
+		cancelBillCriteria.setStatusToBeUpdated(BillStatus.CANCELLED);
+
+		if (!CollectionUtils.isEmpty(consumerCodes) && consumerCodes.size() > 1) {
+
+			throw new CustomException("EG_BS_CANCEL_BILL_ERROR", "Only one consumer code can be provided in the Cancel request");
+		} else {
+
+			return billRepository.updateBillStatus(cancelBillCriteria);
+		}
+	}
 	
 	/**
 	 * Fetches the bill for given parameters
