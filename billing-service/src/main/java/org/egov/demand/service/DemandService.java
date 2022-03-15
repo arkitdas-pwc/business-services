@@ -145,6 +145,64 @@ public class DemandService {
 	 * @param demandRequest
 	 * @return
 	 */
+	public DemandResponse create(DemandRequest demandRequest) {
+
+		DocumentContext mdmsData = util.getMDMSData(demandRequest.getRequestInfo(),
+				demandRequest.getDemands().get(0).getTenantId());
+
+		demandValidatorV1.validatedemandForCreate(demandRequest, true, mdmsData);
+
+		log.info("the demand request in create async : {}", demandRequest);
+
+		RequestInfo requestInfo = demandRequest.getRequestInfo();
+		List<Demand> demands = demandRequest.getDemands();
+		AuditDetails auditDetail = util.getAuditDetail(requestInfo);
+		
+		List<AmendmentUpdate> amendmentUpdates = consumeAmendmentIfExists(demands, auditDetail);
+		generateAndSetIdsForNewDemands(demands, auditDetail);
+
+		List<Demand> demandsToBeCreated = new ArrayList<>();
+		List<Demand> demandToBeUpdated = new ArrayList<>();
+
+		String businessService = demandRequest.getDemands().get(0).getBusinessService();
+		Boolean isAdvanceAllowed = util.getIsAdvanceAllowed(businessService, mdmsData);
+
+		if(isAdvanceAllowed){
+			apportionAdvanceIfExist(demandRequest,mdmsData,demandsToBeCreated,demandToBeUpdated);
+		}
+		else {
+			demandsToBeCreated.addAll(demandRequest.getDemands());
+		}
+
+		save(new DemandRequest(requestInfo,demandsToBeCreated));
+		
+		// pushed to update water installment table for newly created demand
+		if(demandsToBeCreated.get(0).getBusinessService().equalsIgnoreCase("WS")) {
+			Map<String, Object> installmentUpdateRequest = new HashMap<>();
+			installmentUpdateRequest.put("requestInfo", requestInfo);
+			installmentUpdateRequest.put("demands", demandsToBeCreated);
+			producer.push(wsInstallmentUpdateTopic, installmentUpdateRequest);
+		}
+		
+		if (!CollectionUtils.isEmpty(amendmentUpdates))
+			amendmentRepository.updateAmendment(amendmentUpdates);
+
+		if(!CollectionUtils.isEmpty(demandToBeUpdated))
+			update(new DemandRequest(requestInfo,demandToBeUpdated), null);
+		
+		billRepoV2.updateBillStatus(demands.stream().map(Demand::getConsumerCode).collect(Collectors.toList()), BillStatus.EXPIRED);
+		
+		return new DemandResponse(responseInfoFactory.getResponseInfo(requestInfo, HttpStatus.CREATED), demands);
+	}
+	
+	/**
+	 * Method to create new demand for bulkbill scheduler
+	 * 
+	 * generates ids and saves to the repository
+	 * 
+	 * @param demandRequest
+	 * @return
+	 */
 	public DemandResponse create(DemandRequest demandRequest, BulkBillGenerator billGenerator) {
 
 		DocumentContext mdmsData = util.getMDMSData(demandRequest.getRequestInfo(),
