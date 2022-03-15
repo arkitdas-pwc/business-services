@@ -54,7 +54,7 @@ public class BulkBillGenerationConsumer {
 				+ " with no of records " + billGenerator.getCreateDemands().size());
 		
 		try {
-			demandService.create(request);
+			demandService.create(request, billGenerator);
 		} catch (Exception e) {
 			logError(" Demand creation ", e.getMessage(), billGenerator.getMigrationCount());
 			return;
