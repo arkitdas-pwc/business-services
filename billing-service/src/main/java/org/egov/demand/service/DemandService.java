@@ -63,6 +63,7 @@ import org.egov.demand.config.ApplicationProperties;
 import org.egov.demand.model.ApportionDemandResponse;
 import org.egov.demand.model.AuditDetails;
 import org.egov.demand.model.BillV2.BillStatus;
+import org.egov.demand.model.BulkBillGenerator;
 import org.egov.demand.model.Demand;
 import org.egov.demand.model.DemandApportionRequest;
 import org.egov.demand.model.DemandCriteria;
@@ -144,7 +145,7 @@ public class DemandService {
 	 * @param demandRequest
 	 * @return
 	 */
-	public DemandResponse create(DemandRequest demandRequest) {
+	public DemandResponse create(DemandRequest demandRequest, BulkBillGenerator billGenerator) {
 
 		DocumentContext mdmsData = util.getMDMSData(demandRequest.getRequestInfo(),
 				demandRequest.getDemands().get(0).getTenantId());
@@ -176,16 +177,21 @@ public class DemandService {
 		save(new DemandRequest(requestInfo,demandsToBeCreated));
 		
 		// pushed to update water installment table for newly created demand
-		Map<String, Object> installmentUpdateRequest = new HashMap<>();
-		installmentUpdateRequest.put("requestInfo", requestInfo);
-		installmentUpdateRequest.put("demands", demandsToBeCreated);
-		producer.push(wsInstallmentUpdateTopic, installmentUpdateRequest);
+		if(demandsToBeCreated.get(0).getBusinessService().equalsIgnoreCase("WS")) {
+			Map<String, Object> installmentUpdateRequest = new HashMap<>();
+			installmentUpdateRequest.put("requestInfo", requestInfo);
+			installmentUpdateRequest.put("demands", demandsToBeCreated);
+			producer.push(wsInstallmentUpdateTopic, installmentUpdateRequest);
+		}
 		
 		if (!CollectionUtils.isEmpty(amendmentUpdates))
 			amendmentRepository.updateAmendment(amendmentUpdates);
 
 		if(!CollectionUtils.isEmpty(demandToBeUpdated))
 			update(new DemandRequest(requestInfo,demandToBeUpdated), null);
+		
+		if(billGenerator != null)
+			billGenerator.setUpdateDemands(demandToBeUpdated);
 		
 		billRepoV2.updateBillStatus(demands.stream().map(Demand::getConsumerCode).collect(Collectors.toList()), BillStatus.EXPIRED);
 		
