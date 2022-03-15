@@ -95,7 +95,7 @@ public class DemandController {
 
 		log.info("the demand request object : " + demandRequest);
 
-		DemandResponse demandResponse = demandService.create(demandRequest, null);
+		DemandResponse demandResponse = demandService.create(demandRequest);
 
 		return new ResponseEntity<>(demandResponse, HttpStatus.CREATED);
 	}
