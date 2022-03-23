@@ -170,4 +170,7 @@ public class Constants {
 	public static final String PAID_CANCEL_BILL_MSG = "You cannot cancel the bill in the workflow";
 
 	public static final String COUNT_REPLACE_CANCEL_BILL_MSG = "{count}";
+	
+	public static final List<String> ADVANCE_TAXHEADS = Arrays.asList("SW_ADVANCE_CARRYFORWARD", "WS_ADVANCE_CARRYFORWARD");
+	
 }
