@@ -39,6 +39,7 @@ import static org.egov.demand.util.Constants.TAXPERIOD_PATH_CODE;
 import static org.egov.demand.util.Constants.USER_UUID_NOT_FOUND_KEY;
 import static org.egov.demand.util.Constants.USER_UUID_NOT_FOUND_MSG;
 import static org.egov.demand.util.Constants.USER_UUID_NOT_FOUND_REPLACETEXT;
+import static org.egov.demand.util.Constants.ADVANCE_TAXHEADS;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -416,8 +417,11 @@ public class DemandValidatorV1 {
 			Boolean isTaxGtZeroAndCollectionGtTaxOrCollectionLtZero = tax.compareTo(BigDecimal.ZERO) >= 0
 					&& (tax.compareTo(collection) < 0 || collection.compareTo(BigDecimal.ZERO) < 0);
 			
-			Boolean isTaxLtZeroAndCollectionNeToZeroAndCollectionGtTax = tax.compareTo(BigDecimal.ZERO) < 0
-					&& collection.compareTo(tax) != 0 && collection.compareTo(BigDecimal.ZERO) != 0;
+			Boolean isTaxLtZeroAndCollectionNeToZeroAndCollectionGtTax = false;
+			if(!ADVANCE_TAXHEADS.contains(demandDetail.getTaxHeadMasterCode())) {
+				isTaxLtZeroAndCollectionNeToZeroAndCollectionGtTax = tax.compareTo(BigDecimal.ZERO) < 0
+						&& collection.compareTo(tax) != 0 && collection.compareTo(BigDecimal.ZERO) != 0;
+			}
 			
 			if (isTaxGtZeroAndCollectionGtTaxOrCollectionLtZero) {
 				log.error("demand details: id: "+demandDetail.getId()+" taxhead: "+demandDetail.getTaxHeadMasterCode()+
