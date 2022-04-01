@@ -615,4 +615,68 @@ public class BillServicev2 {
 		return getBillResponse(billRequest.getBills());
 	}
 	
+	public BillResponseV2 expireAndCreateNewBill(GenerateBillCriteria billCriteria, RequestInfoWrapper requestInfoWrapper) {
+		RequestInfo requestInfo = requestInfoWrapper.getRequestInfo();
+		
+		BillResponseV2 res = searchBill(billCriteria.toBillSearchCriteria(), requestInfo);
+		List<BillV2> bills = res.getBill();
+
+		/* 
+		 * If no existing bills found then Generate new bill 
+		 */
+		if (CollectionUtils.isEmpty(bills))
+			return generateBill(billCriteria, requestInfo);
+		
+		Map<String, BillV2> consumerCodeAndBillMap = bills.stream().collect(Collectors.toMap(BillV2::getConsumerCode, Function.identity()));
+		billCriteria.getConsumerCode().addAll(consumerCodeAndBillMap.keySet());
+		/*
+		 * Collecting the businessService code and the list of consumer codes for those service codes 
+		 * whose demands needs to be updated.
+		 * 
+		 * grouping by service code and collecting the list of 
+		 * consumerCodes against the service code
+		 */
+ 		List<String> cosnumerCodesNotFoundInBill = new ArrayList<>(billCriteria.getConsumerCode());
+ 		List<String> expiredCosnumerCodes = new ArrayList<>(billCriteria.getConsumerCode());
+		List<String> consumerCodesToBeExpired = new ArrayList<>();
+		List<BillV2> billsToBeReturned = new ArrayList<>();
+		Boolean isBillNotExpired = false;
+		
+		for (Entry<String, BillV2> entry : consumerCodeAndBillMap.entrySet()) {
+			BillV2 bill = entry.getValue();
+
+			for (BillDetailV2 billDetail : bill.getBillDetails()) {
+				if (billDetail.getExpiryDate().compareTo(System.currentTimeMillis()) >= 0) {
+					isBillNotExpired = true;
+					break;
+				}
+			}
+			if (isBillNotExpired) {
+				consumerCodesToBeExpired.add(bill.getConsumerCode());
+			} else {
+				expiredCosnumerCodes.add(bill.getConsumerCode());
+			}
+				
+			cosnumerCodesNotFoundInBill.remove(entry.getKey());
+			isBillNotExpired = false;
+		}
+		
+		/*
+		 * If none of the billDetails in the bills needs to be updated then return the search result
+		 */
+		if(CollectionUtils.isEmpty(consumerCodesToBeExpired) && CollectionUtils.isEmpty(cosnumerCodesNotFoundInBill))
+			return res;
+		else {
+			
+			billCriteria.getConsumerCode().retainAll(expiredCosnumerCodes);
+			billCriteria.getConsumerCode().addAll(cosnumerCodesNotFoundInBill);
+			updateDemandsForexpiredBillDetails(billCriteria.getBusinessService(), billCriteria.getConsumerCode(), billCriteria.getTenantId(), requestInfoWrapper);
+			billRepository.updateBillStatus(consumerCodesToBeExpired, BillStatus.EXPIRED);
+			BillResponseV2 finalResponse = generateBill(billCriteria, requestInfo);
+			finalResponse.getBill().addAll(billsToBeReturned);
+			return finalResponse;
+		}
+		
+	}
+	
 }

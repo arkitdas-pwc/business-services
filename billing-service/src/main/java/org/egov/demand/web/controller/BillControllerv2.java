@@ -108,4 +108,13 @@ public class BillControllerv2 {
 		responseMap.put(Constants.MESSAGE_STRING, responseMsg);
 		return new ResponseEntity<>(responseMap, status);
 	}
+	
+	@PostMapping("_expireandcreatenewbill")
+	@ResponseBody
+	public ResponseEntity<?> expireAndCreateNewBill(@RequestBody RequestInfoWrapper requestInfoWrapper, 
+			@ModelAttribute @Valid GenerateBillCriteria generateBillCriteria){
+		
+		BillResponseV2 billResponse = billService.expireAndCreateNewBill(generateBillCriteria, requestInfoWrapper);
+		return new ResponseEntity<>(billResponse, HttpStatus.CREATED);
+	}
 }
