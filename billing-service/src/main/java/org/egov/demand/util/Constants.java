@@ -154,6 +154,7 @@ public class Constants {
 	public static final String DEBIT_NOTE_VALUE = "DN";
 
 	
+
 	private Constants() {}
 	
 	/*

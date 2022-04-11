@@ -176,6 +176,13 @@ public class Util {
 		return builder.toString();
 	}
 
+    public String getApportionDemandURL(){
+		StringBuilder builder = new StringBuilder(appProps.getApportionHost());
+		builder.append(appProps.getApportionDemandEndpoint());
+		return builder.toString();
+	}
+    
+    
 	/**
 	 * Fetches the isAdvanceAllowed flag for the given businessService
 	 * @param businessService
