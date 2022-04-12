@@ -28,6 +28,7 @@ import org.egov.demand.model.AuditDetails;
 import org.egov.demand.model.Demand;
 import org.egov.demand.model.DemandDetail;
 import org.egov.demand.repository.ServiceRequestRepository;
+import org.egov.demand.web.contract.UserResponse;
 import org.egov.mdms.model.MasterDetail;
 import org.egov.mdms.model.MdmsCriteria;
 import org.egov.mdms.model.MdmsCriteriaReq;

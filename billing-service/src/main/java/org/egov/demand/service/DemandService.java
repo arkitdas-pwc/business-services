@@ -45,6 +45,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -658,7 +659,7 @@ public class DemandService {
 				.createdTime(createdTime)
 				.lastModifiedBy("2743bf22-0101-5121-prpt-79e5d0ce0003")
 				.lastModifiedTime(createdTime).build();
-
+		//These fields are hardcoded. Will change it to some specific USer from Production after testing is done
 		List<Demand> newDemands = new ArrayList<>();
 
 		for (Demand demand : demands) {
@@ -690,7 +691,7 @@ public class DemandService {
 		}
 		generateAndSetIdsForNewDemands(newDemands, auditDetail);
 		log.info("Before Updating Demand..");
-		//update(demandRequest, paymentBackUpdateAudit);
+		update(demandRequest, paymentBackUpdateAudit);
 		log.info("Updating Demand Successful..");
 		return new DemandResponse(responseInfoFactory.getResponseInfo(requestInfo, HttpStatus.CREATED), demands);
 	}

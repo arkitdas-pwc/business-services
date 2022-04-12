@@ -146,7 +146,7 @@ public class DemandController {
 	}
     
     @PostMapping("_updatedemanddetails")
-   	public ResponseEntity<?> updatedemanddetails2(@RequestBody  DemandDetailsSearchRequest demandDetailsSearchRequest) {
+   	public ResponseEntity<?> updatedemanddetails(@RequestBody  DemandDetailsSearchRequest demandDetailsSearchRequest) {
     	log.info("Updating Demand Details..");
    		RequestInfo requestInfo = demandDetailsSearchRequest.getRequestInfo();
    		List<Demand> demands = new ArrayList<>();
