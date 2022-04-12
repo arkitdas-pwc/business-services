@@ -72,7 +72,7 @@ public class ApportionControllerV2 {
 // New Demand Details Update
     @RequestMapping(value="/demanddetail/_apportion", method = RequestMethod.POST)
     public ResponseEntity<ApportionDemandResponse> apportionDemandDetailPost(@Valid @RequestBody DemandDetailsApportionRequest apportionRequest){
-    	List<Demand> demands = apportionService.apportionDemandDetails(apportionRequest);
+    	List<Demand> demands = apportionService.apportionDemandUpdate(apportionRequest);
         ApportionDemandResponse response = ApportionDemandResponse.builder()
                 .tenantId(apportionRequest.getTenantId())
                 .demands(demands)

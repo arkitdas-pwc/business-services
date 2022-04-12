@@ -1,24 +1,22 @@
 package org.egov.service;
 
+import org.egov.tracer.model.CustomException;
+import org.egov.web.models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.egov.tracer.model.CustomException;
-import org.egov.web.models.ApportionRequestV2;
-import org.egov.web.models.Bill;
-import org.egov.web.models.BillDetail;
-import org.egov.web.models.Bucket;
-import org.egov.web.models.Demand;
-import org.egov.web.models.DemandDetail;
-import org.egov.web.models.TaxDetail;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+
 @Service
 public class TranslationService {
 
@@ -128,11 +126,12 @@ public class TranslationService {
     }
 
 //New for demand Details update
-    public List<Demand> translateForDemandAmount(BigDecimal amountToBePaid, List<Demand> demands,Object mdmsData) {
+    public List<Demand> translateDemandAmount(BigDecimal amountToBePaid, List<Demand> demands,Object mdmsData) {
     	System.out.println("Starting Translate for Demand Details.. amountToBePaid"+amountToBePaid);
     	 List<Demand> demandList = new ArrayList<>();
         // Group by businessService before calling this function
         String businessService = demands.get(0).getBusinessService();
+        System.out.println("Business Service..:"+businessService);
         Map<String,Integer> codeToOrderMap = taxHeadMasterService.getCodeToOrderMap(businessService,mdmsData);
         Map<DemandDetail,Integer> formattedDemand = new HashMap<>();
         Demand demand = demands.get(0);
@@ -141,38 +140,51 @@ public class TranslationService {
             formattedDemand.put(demandDetail,priority);
          }
         
+        //formattedDemand.sort(Comparator.comparing(BillDetail::getFromPeriod));
+        //Collections.sort(formattedDemand);
         Map<DemandDetail, Integer> sortedDemandMap = formattedDemand.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-        System.out.println("Sorted size.."+sortedDemandMap.size());
+        System.out.println("SOrted size.."+sortedDemandMap.size());
         List<DemandDetail> detailsList = new ArrayList<>(); 
         int temp =1; 
         for (Map.Entry<DemandDetail, Integer> entry : sortedDemandMap.entrySet()) {
+        	System.out.println("Temp val.."+temp);
         	temp++;
 			//for a single DemandDetails/TaxHead
 			DemandDetail demandDet = entry.getKey();
+			System.out.println("Key...."+entry.getValue());
 			BigDecimal collectionAmount = demandDet.getCollectionAmount();
+			System.out.println("collectionAmount....."+collectionAmount);
+			System.out.println("Tax....."+demandDet.getTaxAmount());
 			//If Taxamount and collectionAmount is not equal
 			if(demandDet.getTaxAmount() != collectionAmount) {
-				BigDecimal amountDifference = demandDet.getTaxAmount().subtract(collectionAmount);
-				if(amountToBePaid.compareTo(amountDifference) == 1) {// amount paid > amountDifference
-					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+				BigDecimal diff = demandDet.getTaxAmount().subtract(collectionAmount);
+				System.out.println("diff....."+diff);
+				if(amountToBePaid.compareTo(diff) == 1) {// amount paid > diff
+					System.out.println("1");
+					demandDet.setCollectionAmount(collectionAmount.add(diff));
 					detailsList.add(demandDet);
-					amountToBePaid = amountToBePaid.subtract(amountDifference);//collectionAmount);
-				}else if(amountToBePaid.compareTo(amountDifference) == -1) {// amount paid < amountDifference
-					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+					amountToBePaid = amountToBePaid.subtract(diff);//collectionAmount);
+				}else if(amountToBePaid.compareTo(diff) == -1) {// amount paid < diff
+					// Adjust the amount and exit
+					System.out.println("2");
+					demandDet.setCollectionAmount(collectionAmount.add(diff));
 					detailsList.add(demandDet);
 					amountToBePaid=new BigDecimal(0);
 					break;
-				}else if(amountToBePaid.compareTo(amountDifference) == 0) {// amount paid = amountDifference
-					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+				}else if(amountToBePaid.compareTo(diff) == 0) {// amount paid = diff
+					//adjust and exit from the loop
+					System.out.println("3");
+					demandDet.setCollectionAmount(collectionAmount.add(diff));
 					detailsList.add(demandDet);
 					amountToBePaid=new BigDecimal(0);
 					break;
 				}
 			}
 		}
+        System.out.println("Response Demmand.."+detailsList);
 		// Now prepare demand
         demand.setDemandDetails(detailsList);
         demandList.add(demand);
@@ -180,4 +192,8 @@ public class TranslationService {
         return demandList;
     }
     
+   
+
+
+
     }

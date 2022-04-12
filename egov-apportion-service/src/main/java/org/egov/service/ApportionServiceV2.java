@@ -3,24 +3,11 @@ package org.egov.service;
 import static org.egov.util.ApportionConstants.DEFAULT;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import org.egov.config.ApportionConfig;
 import org.egov.producer.Producer;
-import org.egov.web.models.ApportionRequest;
-import org.egov.web.models.ApportionRequestV2;
-import org.egov.web.models.Bill;
-import org.egov.web.models.BillAccountDetail;
-import org.egov.web.models.BillDetail;
-import org.egov.web.models.Bucket;
-import org.egov.web.models.Demand;
-import org.egov.web.models.DemandDetail;
-import org.egov.web.models.TaxDetail;
+import org.egov.web.models.*;
 import org.egov.web.models.enums.DemandApportionRequest;
 import org.egov.web.models.enums.DemandDetailsApportionRequest;
 import org.egov.web.models.enums.Purpose;
@@ -284,7 +271,8 @@ public class ApportionServiceV2 {
     }
 
 // New Demand Translation
-    public List<Demand> apportionDemandDetails(DemandDetailsApportionRequest request) {
+    public List<Demand> apportionDemandUpdate(DemandDetailsApportionRequest request) {
+    	System.out.println("Starting demand detail apportion Service starts");
         List<Demand> demands = request.getDemands();
         BigDecimal amountToBePaid= BigDecimal.valueOf(Double.valueOf(request.getAmountToBeAdjusted()));
 
@@ -292,7 +280,7 @@ public class ApportionServiceV2 {
         producer.push(config.getDemandRequestTopic(), request);
         //Fetch the required MDMS data
         Object masterData = mdmsService.mDMSCall(request.getRequestInfo(), request.getTenantId());
-        List<Demand> demandsList = translationService.translateForDemandAmount(amountToBePaid,demands,masterData);
+        List<Demand> demandsList = translationService.translateDemandAmount(amountToBePaid,demands,masterData);
 
         //Save the response through persister
         producer.push(config.getDemandResponseTopic(), request);
