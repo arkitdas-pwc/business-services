@@ -9,6 +9,7 @@ import org.egov.config.ApportionConfig;
 import org.egov.producer.Producer;
 import org.egov.web.models.*;
 import org.egov.web.models.enums.DemandApportionRequest;
+import org.egov.web.models.enums.DemandDetailsApportionRequest;
 import org.egov.web.models.enums.Purpose;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -269,6 +270,21 @@ public class ApportionServiceV2 {
 
     }
 
+// New Demand Translation
+    public List<Demand> apportionDemandUpdate(DemandDetailsApportionRequest request) {
+    	System.out.println("Starting demand detail apportion Service starts");
+        List<Demand> demands = request.getDemands();
+        BigDecimal amountToBePaid= BigDecimal.valueOf(Double.valueOf(request.getAmountToBeAdjusted()));
 
+        //Save the request through persister
+        producer.push(config.getDemandRequestTopic(), request);
+        //Fetch the required MDMS data
+        Object masterData = mdmsService.mDMSCall(request.getRequestInfo(), request.getTenantId());
+        List<Demand> demandsList = translationService.translateDemandAmount(amountToBePaid,demands,masterData);
+
+        //Save the response through persister
+        producer.push(config.getDemandResponseTopic(), request);
+        return demands;
+    }
 
 }
