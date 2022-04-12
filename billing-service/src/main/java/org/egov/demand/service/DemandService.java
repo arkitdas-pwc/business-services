@@ -45,6 +45,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,8 @@ import org.egov.demand.model.Demand;
 import org.egov.demand.model.DemandApportionRequest;
 import org.egov.demand.model.DemandCriteria;
 import org.egov.demand.model.DemandDetail;
+import org.egov.demand.model.DemandDetailsApportionRequest;
+import org.egov.demand.model.DemandDetailsSearchRequest;
 import org.egov.demand.model.PaymentBackUpdateAudit;
 import org.egov.demand.producer.Producer;
 import org.egov.demand.repository.AmendmentRepository;
@@ -573,6 +576,120 @@ public class DemandService {
 		}
 
 		return updateListForConsumedAmendments;
+	}
+	
+
+	/**
+	 * Search method to fetch demand details from DB
+	 * 
+	 * @param demandId
+	 * @return
+	 */
+	
+	public List<Demand> getDemandDetails(DemandDetailsSearchRequest demandDetailsSearchRequest){// String demandId,String authToken) {//demandDetailsSearchRequest
+		log.info("Starting Demand Details Service");
+		Set<String> demandSet = new HashSet<String>();
+		String tenantId= demandDetailsSearchRequest.getTenantId();//"od.cuttack";
+		String businessService = demandDetailsSearchRequest.getBusinessService();//"PT";
+		for(String demand: demandDetailsSearchRequest.getDemands()) {
+			demandSet.add(demand);
+		}
+		DemandCriteria demandCriteria = new DemandCriteria();
+		demandCriteria.setBusinessService(businessService);
+		demandCriteria.setDemandId(demandSet);
+		demandCriteria.setTenantId(tenantId);
+		demandCriteria.setStatus("ACTIVE");
+		List<DemandDetail> demandDetails = new ArrayList<>();
+		RequestInfo requestInfo = demandDetailsSearchRequest.getRequestInfo();
+		List<Demand> demands = new ArrayList<>();
+		try {
+			//String authToken = requestInfo.getAuthToken();
+			demands = demandRepository.getDemands(demandCriteria);
+			if(demands.size()>0) {	
+				DemandDetailsApportionRequest apportionRequest = DemandDetailsApportionRequest.builder()
+						.requestInfo(requestInfo)
+						.demands(demands)
+						.tenantId(tenantId)
+						.amountToBeAdjusted(demandDetailsSearchRequest.getAmountToBeAdjusted())
+						.build();
+				// Add amount in this request 
+				Object response = serviceRequestRepository.fetchResult(util.getApportionDemandURL(), 
+						apportionRequest);
+				ApportionDemandResponse apportionDemandResponse = mapper.convertValue(response,
+						ApportionDemandResponse.class);
+				// Only the current demand is to be created rest all are to be updated
+				apportionDemandResponse.getDemands().forEach(demandFromResponse -> {
+					demandDetails.addAll(demandFromResponse.getDemandDetails());
+				});
+				demands.get(0).setDemandDetails(demandDetails);
+				DemandRequest demandRequest = createDemandRequestObj(demands, requestInfo);
+				// Update
+				updateAsyncForDemand(demandRequest, null);
+			}
+		}catch(Exception e) {
+			log.error("Error : While fetching demand details.");
+		}
+		return demands;//demandDetails;
+	}
+
+	public DemandRequest createDemandRequestObj(List<Demand> demands,RequestInfo requestInfo) {//List<DemandDetail> demandDetails) {
+		log.info("Creating demand Request");
+		DemandRequest demandReq = new DemandRequest();
+		
+		demandReq.setDemands(demands);
+		demandReq.setRequestInfo(requestInfo);
+		
+		return demandReq;
+	}
+	
+	public DemandResponse updateAsyncForDemand(DemandRequest demandRequest, PaymentBackUpdateAudit paymentBackUpdateAudit) {
+
+		log.debug("the demand service : " + demandRequest);
+		RequestInfo requestInfo = demandRequest.getRequestInfo();
+		List<Demand> demands = demandRequest.getDemands();
+		//AuditDetails auditDetail = util.getAuditDetail(requestInfo);
+		Date now = new Date();
+		Long createdTime = 	now.getTime(); //(long) 1646652612027L;
+		AuditDetails auditDetail = AuditDetails.builder()
+				.createdBy("2743bf22-0101-5121-prpt-79e5d0ce0003")
+				.createdTime(createdTime)
+				.lastModifiedBy("2743bf22-0101-5121-prpt-79e5d0ce0003")
+				.lastModifiedTime(createdTime).build();
+		//These fields are hardcoded. Will change it to some specific USer from Production after testing is done
+		List<Demand> newDemands = new ArrayList<>();
+
+		for (Demand demand : demands) {
+			String demandId = demand.getId();
+
+			if (StringUtils.isEmpty(demandId)) {
+				/*
+				 * If demand id is empty then gen new demand Id
+				 */
+				newDemands.add(demand);
+			} else {
+
+				demand.setAuditDetails(auditDetail);
+				for (DemandDetail detail : demand.getDemandDetails()) {
+
+					if (StringUtils.isEmpty(detail.getId())) {
+						/*
+						 * If id is empty for demand detail treat it as new
+						 */
+						detail.setId(UUID.randomUUID().toString());
+						detail.setCollectionAmount(BigDecimal.ZERO);
+					}
+					detail.setAuditDetails(auditDetail);
+					detail.setDemandId(demandId);
+					detail.setTenantId(demand.getTenantId());
+				}
+			}
+			util.updateDemandPaymentStatus(demand, null != paymentBackUpdateAudit);
+		}
+		generateAndSetIdsForNewDemands(newDemands, auditDetail);
+		log.info("Before Updating Demand..");
+		update(demandRequest, paymentBackUpdateAudit);
+		log.info("Updating Demand Successful..");
+		return new DemandResponse(responseInfoFactory.getResponseInfo(requestInfo, HttpStatus.CREATED), demands);
 	}
 	
 }

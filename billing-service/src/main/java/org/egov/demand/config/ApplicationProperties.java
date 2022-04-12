@@ -164,6 +164,9 @@ public class ApplicationProperties {
 
 	@Value("${egov.apportion.endpoint}")
 	private String apportionEndpoint;
+	
+	@Value("${egov.apportion.demand.endpoint}")
+	private String apportionDemandEndpoint;
 
 	// Amendment
 	@Value("${is.amendment.workflow.enabled}")

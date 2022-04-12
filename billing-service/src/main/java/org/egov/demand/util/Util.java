@@ -28,6 +28,7 @@ import org.egov.demand.model.AuditDetails;
 import org.egov.demand.model.Demand;
 import org.egov.demand.model.DemandDetail;
 import org.egov.demand.repository.ServiceRequestRepository;
+import org.egov.demand.web.contract.UserResponse;
 import org.egov.mdms.model.MasterDetail;
 import org.egov.mdms.model.MdmsCriteria;
 import org.egov.mdms.model.MdmsCriteriaReq;
@@ -176,6 +177,13 @@ public class Util {
 		return builder.toString();
 	}
 
+    public String getApportionDemandURL(){
+		StringBuilder builder = new StringBuilder(appProps.getApportionHost());
+		builder.append(appProps.getApportionDemandEndpoint());
+		return builder.toString();
+	}
+    
+    
 	/**
 	 * Fetches the isAdvanceAllowed flag for the given businessService
 	 * @param businessService
