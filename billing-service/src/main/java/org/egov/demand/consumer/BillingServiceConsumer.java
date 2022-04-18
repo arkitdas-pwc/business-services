@@ -2,6 +2,7 @@ package org.egov.demand.consumer;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -11,9 +12,11 @@ import org.egov.demand.config.ApplicationProperties;
 import org.egov.demand.helper.CollectionReceiptRequest;
 import org.egov.demand.model.BillDetail.StatusEnum;
 import org.egov.demand.model.BillV2;
+import org.egov.demand.model.GenerateBillCriteria;
 import org.egov.demand.model.PaymentBackUpdateAudit;
 import org.egov.demand.repository.BillRepository;
 import org.egov.demand.repository.DemandRepository;
+import org.egov.demand.service.BillServicev2;
 import org.egov.demand.service.DemandService;
 import org.egov.demand.service.ReceiptService;
 import org.egov.demand.service.ReceiptServiceV2;
@@ -24,6 +27,7 @@ import org.egov.demand.web.contract.BillRequestV2;
 import org.egov.demand.web.contract.DemandRequest;
 import org.egov.demand.web.contract.Receipt;
 import org.egov.demand.web.contract.ReceiptRequest;
+import org.egov.demand.web.contract.RequestInfoWrapper;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -62,6 +66,9 @@ public class BillingServiceConsumer {
 	
 	@Autowired
 	private ReceiptServiceV2 receiptServiceV2;
+	
+	@Autowired
+	private BillServicev2 billService;
 	
 	@Autowired
 	private Util util;
@@ -125,6 +132,7 @@ public class BillingServiceConsumer {
 
 			Boolean isReceiptCancellation = false;
 			updateDemandsFromPayment(consumerRecord, isReceiptCancellation);
+			expireAndCreateNewBill(consumerRecord, isReceiptCancellation);
 		}
 
 		/*
@@ -163,6 +171,43 @@ public class BillingServiceConsumer {
 			log.info("EGBS_PAYMENT_BACKUPDATE_ERROR",e.getClass().getName() + " : " + e.getMessage());
 			
 		}
+	}
+	
+	private void expireAndCreateNewBill(Map<String, Object> consumerRecord, Boolean isReceiptCancellation) {
+		try {
+			
+			DocumentContext context = JsonPath.parse(objectMapper.writeValueAsString(consumerRecord));
+
+			String paymentId = objectMapper.convertValue(context.read("$.Payment.id"), String.class);
+			List<BigDecimal> amtPaidList = Arrays.asList(objectMapper.convertValue(context.read("$.Payment.paymentDetails.*.totalAmountPaid"), BigDecimal[].class));
+			List<BillV2> bills = Arrays.asList(objectMapper.convertValue(context.read("$.Payment.paymentDetails.*.bill"), BillV2[].class));
+			
+			RequestInfo requestInfo = objectMapper.convertValue(context.read("$.RequestInfo"), RequestInfo.class);
+			
+			for (int i = 0; i < bills.size(); i++) {
+				
+				BillV2 bill = bills.get(i);
+
+				BigDecimal amtPaid = null != amtPaidList.get(i) ? amtPaidList.get(i) : BigDecimal.ZERO; 
+
+				if (!isReceiptCancellation && bill.getTotalAmount().compareTo(amtPaid) > 0) {
+					if("PT".equalsIgnoreCase(bill.getBusinessService())) {
+						billService.expireAndCreateNewBill(
+								GenerateBillCriteria.builder().tenantId(bill.getTenantId())
+										.businessService(bill.getBusinessService())
+										.consumerCode(Collections.singleton(bill.getConsumerCode())).build(), 
+								new RequestInfoWrapper(requestInfo)
+						);
+					}
+
+				}
+				
+			}
+			
+		} catch (Exception e) {
+			log.error("KAFKA_PROCESS_ERROR:", e);
+		}
+
 	}
 
 
