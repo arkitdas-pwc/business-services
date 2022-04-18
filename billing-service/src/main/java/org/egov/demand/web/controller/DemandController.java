@@ -39,7 +39,6 @@
  */
 package org.egov.demand.web.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +47,6 @@ import javax.validation.Valid;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.demand.model.Demand;
 import org.egov.demand.model.DemandCriteria;
-import org.egov.demand.model.DemandDetail;
-import org.egov.demand.model.DemandDetailsSearchRequest;
 import org.egov.demand.service.DemandService;
 import org.egov.demand.util.migration.DemandMigration;
 import org.egov.demand.web.contract.DemandRequest;
@@ -144,17 +141,5 @@ public class DemandController {
 
 		return new ResponseEntity<>(demandResponse, HttpStatus.CREATED);
 	}
-    
-    @PostMapping("_updatedemanddetails")
-   	public ResponseEntity<?> updatedemanddetails2(@RequestBody  DemandDetailsSearchRequest demandDetailsSearchRequest) {
-    	log.info("Updating Demand Details..");
-   		RequestInfo requestInfo = demandDetailsSearchRequest.getRequestInfo();
-   		List<Demand> demands = new ArrayList<>();
-   		demands = demandService.getDemandDetails(demandDetailsSearchRequest); 
-   		DemandResponse response = DemandResponse.builder().demands(demands)
-   				.responseInfo(responseFactory.getResponseInfo(requestInfo, HttpStatus.OK)).build();
-   		log.info("Demand Details Updated");
-   		return new ResponseEntity<>(response, HttpStatus.OK);
-   	}
     
 }
