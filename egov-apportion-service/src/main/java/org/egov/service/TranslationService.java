@@ -1,16 +1,24 @@
 package org.egov.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.egov.tracer.model.CustomException;
-import org.egov.web.models.*;
+import org.egov.web.models.ApportionRequestV2;
+import org.egov.web.models.Bill;
+import org.egov.web.models.BillDetail;
+import org.egov.web.models.Bucket;
+import org.egov.web.models.Demand;
+import org.egov.web.models.DemandDetail;
+import org.egov.web.models.TaxDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Service
 public class TranslationService {
 
@@ -119,8 +127,57 @@ public class TranslationService {
         return apportionRequestV2;
     }
 
-
-
-
-
+//New for demand Details update
+    public List<Demand> translateForDemandAmount(BigDecimal amountToBePaid, List<Demand> demands,Object mdmsData) {
+    	System.out.println("Starting Translate for Demand Details.. amountToBePaid"+amountToBePaid);
+    	 List<Demand> demandList = new ArrayList<>();
+        // Group by businessService before calling this function
+        String businessService = demands.get(0).getBusinessService();
+        Map<String,Integer> codeToOrderMap = taxHeadMasterService.getCodeToOrderMap(businessService,mdmsData);
+        Map<DemandDetail,Integer> formattedDemand = new HashMap<>();
+        Demand demand = demands.get(0);
+        for(DemandDetail demandDetail : demand.getDemandDetails()){
+            Integer priority = codeToOrderMap.get(demandDetail.getTaxHeadMasterCode());
+            formattedDemand.put(demandDetail,priority);
+         }
+        
+        Map<DemandDetail, Integer> sortedDemandMap = formattedDemand.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+        System.out.println("Sorted size.."+sortedDemandMap.size());
+        List<DemandDetail> detailsList = new ArrayList<>(); 
+        int temp =1; 
+        for (Map.Entry<DemandDetail, Integer> entry : sortedDemandMap.entrySet()) {
+        	temp++;
+			//for a single DemandDetails/TaxHead
+			DemandDetail demandDet = entry.getKey();
+			BigDecimal collectionAmount = demandDet.getCollectionAmount();
+			//If Taxamount and collectionAmount is not equal
+			if(demandDet.getTaxAmount() != collectionAmount) {
+				BigDecimal amountDifference = demandDet.getTaxAmount().subtract(collectionAmount);
+				if(amountToBePaid.compareTo(amountDifference) == 1) {// amount paid > amountDifference
+					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+					detailsList.add(demandDet);
+					amountToBePaid = amountToBePaid.subtract(amountDifference);//collectionAmount);
+				}else if(amountToBePaid.compareTo(amountDifference) == -1) {// amount paid < amountDifference
+					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+					detailsList.add(demandDet);
+					amountToBePaid=new BigDecimal(0);
+					break;
+				}else if(amountToBePaid.compareTo(amountDifference) == 0) {// amount paid = amountDifference
+					demandDet.setCollectionAmount(collectionAmount.add(amountDifference));
+					detailsList.add(demandDet);
+					amountToBePaid=new BigDecimal(0);
+					break;
+				}
+			}
+		}
+		// Now prepare demand
+        demand.setDemandDetails(detailsList);
+        demandList.add(demand);
+        System.out.println("Translate for Demand Details Ends..");
+        return demandList;
+    }
+    
     }

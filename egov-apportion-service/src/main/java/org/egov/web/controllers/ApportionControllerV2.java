@@ -6,6 +6,7 @@ import org.egov.util.ResponseInfoFactory;
 import org.egov.web.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.egov.web.models.enums.DemandApportionRequest;
+import org.egov.web.models.enums.DemandDetailsApportionRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +69,17 @@ public class ApportionControllerV2 {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
-
+// New Demand Details Update
+    @RequestMapping(value="/demanddetail/_apportion", method = RequestMethod.POST)
+    public ResponseEntity<ApportionDemandResponse> apportionDemandDetailPost(@Valid @RequestBody DemandDetailsApportionRequest apportionRequest){
+    	List<Demand> demands = apportionService.apportionDemandDetails(apportionRequest);
+        ApportionDemandResponse response = ApportionDemandResponse.builder()
+                .tenantId(apportionRequest.getTenantId())
+                .demands(demands)
+                .responseInfo(responseInfoFactory.createResponseInfoFromRequestInfo(apportionRequest.getRequestInfo(),
+                        true)).build();
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
 
 
 
